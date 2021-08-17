@@ -15758,13 +15758,21 @@ byte_CA2C:	dc.b 9			; LABYRINTH
 		dc.b $F8, 5, 0,	$2E, $14
 		dc.b $F8, 5, 0,	$42, $24
 		dc.b $F8, 5, 0,	$1C, $34
-byte_CA5A:	dc.b 6			; MARBLE
-		dc.b $F8, 5, 0,	$2A, $CF
-		dc.b $F8, 5, 0,	0, $E0
-		dc.b $F8, 5, 0,	$3A, $F0
-		dc.b $F8, 5, 0,	4, 0
-		dc.b $F8, 5, 0,	$26, $10
-		dc.b $F8, 5, 0,	$10, $20
+byte_CA5A:	dc.b $E	;  MARBLE | NEO GREEN HILL
+		dc.b $F8, 5, 0, $2E, $80	; N
+		dc.b $F8, 5, 0, $10, $90	; E
+		dc.b $F8, 5, 0, $32, $A0	; O
+		dc.b $F8, 0, 0, $56, $B0	; Space
+		dc.b $F8, 5, 0, $18, $C0	; G
+		dc.b $F8, 5, 0, $3A, $D0	; R
+		dc.b $F8, 5, 0, $10, $E0	; E
+		dc.b $F8, 5, 0, $10, $F0	; E
+		dc.b $F8, 5, 0, $2E, $0	; N
+		dc.b $F8, 0, 0, $56, $10	; Space
+		dc.b $F8, 5, 0, $1C, $20	; H
+		dc.b $F8, 1, 0, $20, $30	; I
+		dc.b $F8, 5, 0, $26, $38	; L
+		dc.b $F8, 5, 0, $26, $48	; L
 		dc.b 0
 byte_CA7A:	dc.b 9			; STAR	LIGHT
 		dc.b $F8, 5, 0,	$3E, $B4
