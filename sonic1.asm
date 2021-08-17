@@ -15738,16 +15738,18 @@ Map_obj34:	dc.w byte_C9FE-Map_obj34
 		dc.w byte_CB3C-Map_obj34
 		dc.w byte_CB47-Map_obj34
 		dc.w byte_CB8A-Map_obj34
-byte_C9FE:	dc.b 9 			; GREEN HILL
-		dc.b $F8, 5, 0,	$18, $B4
-		dc.b $F8, 5, 0,	$3A, $C4
-		dc.b $F8, 5, 0,	$10, $D4
-		dc.b $F8, 5, 0,	$10, $E4
-		dc.b $F8, 5, 0,	$2E, $F4
-		dc.b $F8, 5, 0,	$1C, $14
-		dc.b $F8, 1, 0,	$20, $24
-		dc.b $F8, 5, 0,	$26, $2C
-		dc.b $F8, 5, 0,	$26, $3C
+byte_C9FE:	dc.b $B	;  GREEN HILL | VIRTUAL HILL
+		dc.b $F8, 1, 0, $20, $AC	; I
+		dc.b $F8, 5, 0, $3A, $B4	; R
+		dc.b $F8, 5, 0, $42, $C4	; T
+		dc.b $F8, 5, 0, $46, $D4	; U
+		dc.b $F8, 5, 0, 0, $E4		; A
+		dc.b $F8, 5, 0, $26, $F4	; L
+		dc.b $F8, 0, 0, $56, $4	; Space
+		dc.b $F8, 5, 0, $1C, $14	; H
+		dc.b $F8, 1, 0, $20, $24	; I
+		dc.b $F8, 5, 0, $26, $2C	; L
+		dc.b $F8, 5, 0, $26, $3C	; L
 byte_CA2C:	dc.b 9			; LABYRINTH
 		dc.b $F8, 5, 0,	$26, $BC
 		dc.b $F8, 5, 0,	0, $CC

@@ -1,0 +1,27 @@
+{
+    "description": "Flex 2 Project File",
+    "name": "testy",
+    "objects": [
+        {
+            "name": "",
+            "palettes": [],
+            "art": {
+                "path": "artnem\\ttlcards.bin",
+                "compression": "Nemesis"
+            },
+            "mappings": {
+                "path": "",
+                "format": "Sonic 1",
+                "customDefinition": "",
+                "label": ""
+            },
+            "dplcs": {
+                "enabled": false,
+                "path": "",
+                "format": "Sonic 1",
+                "customDefinition": "",
+                "label": ""
+            }
+        }
+    ]
+}
