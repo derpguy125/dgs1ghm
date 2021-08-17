@@ -4,7 +4,12 @@
     "objects": [
         {
             "name": "",
-            "palettes": [],
+            "palettes": [
+                {
+                    "path": "pallet\\sonic.bin",
+                    "length": 1
+                }
+            ],
             "art": {
                 "path": "artnem\\ttlcards.bin",
                 "compression": "Nemesis"

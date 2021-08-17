@@ -15738,7 +15738,8 @@ Map_obj34:	dc.w byte_C9FE-Map_obj34
 		dc.w byte_CB3C-Map_obj34
 		dc.w byte_CB47-Map_obj34
 		dc.w byte_CB8A-Map_obj34
-byte_C9FE:	dc.b $B	;  GREEN HILL | VIRTUAL HILL
+byte_C9FE:	dc.b $C	;  GREEN HILL | VIRTUAL HILL
+		dc.b $F8, 5, 0, $52, $9C	; K
 		dc.b $F8, 1, 0, $20, $AC	; I
 		dc.b $F8, 5, 0, $3A, $B4	; R
 		dc.b $F8, 5, 0, $42, $C4	; T
@@ -15816,14 +15817,11 @@ byte_CB10:	dc.b 4			; ZONE
 		dc.b $F8, 5, 0,	$2E, 0
 		dc.b $F8, 5, 0,	$10, $10
 		dc.b 0
-byte_CB26:	dc.b 2			; ACT 1
-		dc.b 4,	$C, 0, $53, $EC
+byte_CB26:	dc.b 1			; ACT 1
 		dc.b $F4, 2, 0,	$57, $C
-byte_CB31:	dc.b 2			; ACT 2
-		dc.b 4,	$C, 0, $53, $EC
+byte_CB31:	dc.b 1			; ACT 2
 		dc.b $F4, 6, 0,	$5A, 8
-byte_CB3C:	dc.b 2			; ACT 3
-		dc.b 4,	$C, 0, $53, $EC
+byte_CB3C:	dc.b 1			; ACT 3
 		dc.b $F4, 6, 0,	$60, 8
 byte_CB47:	dc.b $D			; Oval
 		dc.b $E4, $C, 0, $70, $F4
