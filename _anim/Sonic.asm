@@ -41,7 +41,7 @@ SonAni_Wait:	dc.b $17, 1, 1,	1, 1, 1, 1, 1, 1, 1, 1,	1, 1, 3, 2, 2, 2, 3, 4, $FE
 SonAni_Balance:	dc.b $1F, $3A, $3B, $FF
 SonAni_LookUp:	dc.b $3F, 5, $FF, 0
 SonAni_Duck:	dc.b $3F, $39, $FF, 0
-SonAni_Warp1:	dc.b $3F, $33, $FF, 0
+SonAni_Warp1:	dc.b 0, $33, $34, $35, $36, $FF
 SonAni_Warp2:	dc.b $3F, $34, $FF, 0
 SonAni_Warp3:	dc.b $3F, $35, $FF, 0
 SonAni_Warp4:	dc.b $3F, $36, $FF, 0

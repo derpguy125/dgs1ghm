@@ -6633,6 +6633,16 @@ LevSz_SonicPos:
 		move.w	d0,($FFFFD00C).w ; set Sonic's position on y-axis
 
 loc_60D0:				; XREF: LevSz_ChkLamp
+		clr.w	($FFFFF7A8).w		; reset Sonic's position tracking index
+		lea	($FFFFCB00).w,a2	; load the tracking array into a2
+		moveq	#63,d2				; begin a 64-step loop
+@looppoint:
+		move.w	d1,(a2)+			; fill in X
+		move.w	d0,(a2)+			; fill in Y
+		dbf	d2,@looppoint		; loop
+
+
+
 		subi.w	#$A0,d1
 		bcc.s	loc_60D8
 		moveq	#0,d1
@@ -12554,6 +12564,8 @@ loc_A1EC:				; XREF: Obj26_Solid
 		bmi.s	loc_A20A
 		cmpi.b	#2,$1C(a1)	; is Sonic rolling?
 		beq.s	loc_A25C	; if yes, branch
+		cmpi.b	#$1F,$1C(a1)	; is Sonic spin-dashing?
+		beq.s	loc_A25C	; if yes, branch
 
 loc_A20A:
 		tst.w	d1
@@ -17313,6 +17325,7 @@ loc_DC56:
 		jsr	(PlaySound_Special).l ;	play spring sound
 
 Obj41_AniLR:				; XREF: Obj41_Index
+		clr.w	($FFFFC904).w	; clear screen delay counter
 		lea	(Ani_obj41).l,a1
 		bra.w	AnimateSprite
 ; ===========================================================================
@@ -23842,6 +23855,7 @@ loc_12E0E:
 ; ---------------------------------------------------------------------------
 
 Obj01_MdNormal:				; XREF: Obj01_Modes
+		bsr.w	Sonic_SpinDash	; add this line!
 		bsr.w	Sonic_Jump
 		bsr.w	Sonic_SlopeResist
 		bsr.w	Sonic_Move
@@ -24450,13 +24464,19 @@ loc_13336:
 ; ===========================================================================
 
 Boundary_Bottom:
-		cmpi.w	#$501,($FFFFFE10).w ; is level SBZ2 ?
-		bne.w	KillSonic	; if not, kill Sonic
+		move.w	($FFFFF726).w,d0
+		move.w	($FFFFF72E).w,d1
+		cmp.w	d0,d1			; screen still scrolling down?
+		blt.s	Boundary_Bottom_locret	; if so, don't kill Sonic
+		cmpi.w	#$501,($FFFFFE10).w	; is level SBZ2 ?
+		bne.w	KillSonic		; if not, kill Sonic
 		cmpi.w	#$2000,($FFFFD008).w
 		bcs.w	KillSonic
-		clr.b	($FFFFFE30).w	; clear	lamppost counter
-		move.w	#1,($FFFFFE02).w ; restart the level
-		move.w	#$103,($FFFFFE10).w ; set level	to SBZ3	(LZ4)
+		clr.b	($FFFFFE30).w		; clear lamppost counter
+		move.w	#1,($FFFFFE02).w	; restart the level
+		move.w	#$103,($FFFFFE10).w	; set level to SBZ3 (LZ4)
+
+Boundary_Bottom_locret:
 		rts	
 ; ===========================================================================
 
@@ -24608,6 +24628,120 @@ loc_134C4:
 locret_134D2:
 		rts	
 ; End of function Sonic_JumpHeight
+
+; ---------------------------------------------------------------------------
+; Subroutine to make Sonic perform a spindash
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+
+
+Sonic_SpinDash:
+		tst.b	$39(a0)
+		bne.s	loc_1AC8E
+		cmpi.b	#8,$1C(a0)
+		bne.s	locret_1AC8C
+		move.b	($FFFFF603).w,d0
+		andi.b	#$70,d0
+		beq.w	locret_1AC8C
+		move.b	#9,$1C(a0)
+		move.w	#$BE,d0
+		jsr	(PlaySound_Special).l
+		addq.l	#4,sp
+		move.b	#1,$39(a0)
+		move.w	#0,$3A(a0)
+		cmpi.b	#$C,$28(a0)
+		bcs.s	loc_1AC84
+		move.b	#2,($FFFFD11C).w
+
+loc_1AC84:
+		bsr.w	Sonic_LevelBound
+		bsr.w	Sonic_AnglePos
+
+locret_1AC8C:
+		rts	
+; ---------------------------------------------------------------------------
+
+loc_1AC8E:
+		move.b	#$9,$1C(a0)
+		move.b	($FFFFF602).w,d0
+		btst	#1,d0
+		bne.w	loc_1AD30
+		move.b	#$E,$16(a0)
+		move.b	#7,$17(a0)
+		move.b	#2,$1C(a0)
+		addq.w	#5,$C(a0)
+		move.b	#0,$39(a0)
+		moveq	#0,d0
+		move.b	$3A(a0),d0
+		add.w	d0,d0
+		move.w	Dash_Speeds(pc,d0.w),$14(a0)
+		move.w	$14(a0),d0
+		subi.w	#$800,d0
+		add.w	d0,d0
+		andi.w	#$1F00,d0
+		neg.w	d0
+		addi.w	#$2000,d0
+		move.w	d0,($FFFFEED0).w
+		btst	#0,$22(a0)
+		beq.s	loc_1ACF4
+		neg.w	$14(a0)
+
+loc_1ACF4:
+		bset	#2,$22(a0)
+		move.b	#0,($FFFFD11C).w
+		move.w	#$BC,d0
+		jsr	(PlaySound_Special).l
+		bra.s	loc_1AD78
+; ===========================================================================
+Dash_Speeds:	dc.w  $800		; 0
+		dc.w  $880		; 1
+		dc.w  $900		; 2
+		dc.w  $980		; 3
+		dc.w  $A00		; 4
+		dc.w  $A80		; 5
+		dc.w  $B00		; 6
+		dc.w  $B80		; 7
+		dc.w  $C00		; 8
+; ===========================================================================
+
+loc_1AD30:				; If still charging the dash...
+		tst.w	$3A(a0)
+		beq.s	loc_1AD48
+		move.w	$3A(a0),d0
+		lsr.w	#5,d0
+		sub.w	d0,$3A(a0)
+		bcc.s	loc_1AD48
+		move.w	#0,$3A(a0)
+
+loc_1AD48:
+		move.b	($FFFFF603).w,d0
+		andi.b	#$70,d0	; 'p'
+		beq.w	loc_1AD78
+		; move.w	#$900,$1C(a0)
+		move.w	#$BE,d0	; 'à'
+		jsr	(PlaySound_Special).l
+		addi.w	#$200,$3A(a0)
+		cmpi.w	#$800,$3A(a0)
+		bcs.s	loc_1AD78
+		move.w	#$800,$3A(a0)
+
+loc_1AD78:
+		addq.l	#4,sp
+		cmpi.w	#$60,($FFFFEED8).w
+		beq.s	loc_1AD8C
+		bcc.s	loc_1AD88
+		addq.w	#4,($FFFFEED8).w
+
+loc_1AD88:
+		subq.w	#2,($FFFFEED8).w
+
+loc_1AD8C:
+		bsr.w	Sonic_LevelBound
+		bsr.w	Sonic_AnglePos
+		move.w	#$60,($FFFFF73E).w	; reset looking up/down
+		rts
+; End of subroutine Sonic_SpinDash
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to	slow Sonic walking up a	slope
@@ -29441,6 +29575,7 @@ loc_16C64:
 		bne.s	loc_16C82
 
 loc_16C7C:
+		clr.b	$20(a1)	; immediately remove all touch response values when destroying the head to avoid taking damage
 		move.b	#$A,$24(a0)
 
 loc_16C82:
@@ -34750,6 +34885,8 @@ locret_1AF2E:
 Touch_Enemy:				; XREF: Touch_ChkValue
 		tst.b	($FFFFFE2D).w	; is Sonic invincible?
 		bne.s	loc_1AF40	; if yes, branch
+		cmpi.b	#$9,$1C(a0)	; is Sonic Spin Dashing?
+		beq.w	loc_1AF40	; if yes, branch
 		cmpi.b	#2,$1C(a0)	; is Sonic rolling?
 		bne.w	Touch_ChkHurt	; if not, branch
 
@@ -34869,6 +35006,7 @@ Hurt_Reverse:
 		neg.w	$10(a0)		; if Sonic is right of the object, reverse
 
 Hurt_ChkSpikes:
+		move.b	#0,$39(a0)	; clear Spin Dash flag
 		move.w	#0,$14(a0)
 		move.b	#$1A,$1C(a0)
 		move.w	#$78,$30(a0)
