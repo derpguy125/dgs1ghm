@@ -38,7 +38,7 @@ Vectors:	dc.l $FFFE00, EntryPoint, BusError, AddressError
 Console:	dc.b 'SEGA MEGA DRIVE ' ; Hardware system ID
 Date:		dc.b '(C)SEGA 1991.APR' ; Release date
 Title_Local:	dc.b 'SONIC THE HEDGEHOG GITHUB CALMNESS              ' ; Domestic name
-Title_Int:	dc.b 'SONIC THE HEDGEHOG GITHUB CALMNESS             ' ; International name
+Title_Int:	dc.b 'SONIC THE HEDGEHOG GITHUB CALMNESS              ' ; International name
 Serial:		dc.b 'GM 00001009-00'   ; Serial/version number
 Checksum:	dc.w 0
 		dc.b 'J               ' ; I/O support
