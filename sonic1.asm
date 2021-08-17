@@ -3245,7 +3245,7 @@ Title_LoadText:
 		move.w	#$178,($FFFFF614).w ; run title	screen for $178	frames
 		lea	($FFFFD080).w,a1
 		moveq	#0,d0
-		move.w	#$F,d1	; ($40 / 4) - 1
+		move.w	#7,d1
 
 Title_ClrObjRam2:
 		move.l	d0,(a1)+
@@ -4561,7 +4561,7 @@ loc_4056:
 		move.b	(a1),d0
 		lea	($FFFFF604).w,a0
 		move.b	d0,d1
-		move.b	-2(a0),d2
+		move.b	(a0),d2
 		eor.b	d2,d0
 		move.b	d1,(a0)+
 		and.b	d1,d0
@@ -7198,11 +7198,11 @@ ScrollHoriz2:				; XREF: ScrollHoriz
 		move.w	($FFFFD008).w,d0
 		sub.w	($FFFFF700).w,d0
 		subi.w	#$90,d0
-		bmi.s	loc_65F6				; cs to mi (for negative)
+		bcs.s	loc_65F6
 		subi.w	#$10,d0
-		bpl.s	loc_65CC				; cc to pl (for negative)
+		bcc.s	loc_65CC
 		clr.w	($FFFFF73A).w
-		rts
+		rts	
 ; ===========================================================================
 
 loc_65CC:
@@ -7224,12 +7224,8 @@ loc_65E4:
 		move.w	d1,($FFFFF73A).w
 		rts	
 ; ===========================================================================
-loc_65F6:
-		cmpi.w	#$FFF0,d0				; has the screen moved more than 10 pixels left?
-		bcc.s	Left_NoMax				; if not, branch
-		move.w	#$FFF0,d0				; set the maximum move distance to 10 pixels left
 
-Left_NoMax:
+loc_65F6:				; XREF: ScrollHoriz2
 		add.w	($FFFFF700).w,d0
 		cmp.w	($FFFFF728).w,d0
 		bgt.s	loc_65E4
@@ -24632,118 +24628,7 @@ loc_134C4:
 locret_134D2:
 		rts	
 ; End of function Sonic_JumpHeight
-; ---------------------------------------------------------------------------
-; Subroutine to make Sonic perform a spindash
-; ---------------------------------------------------------------------------
 
-; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
-
-
-Sonic_SpinDash:
-		tst.b	$39(a0)
-		bne.s	loc_1AC8E
-		cmpi.b	#8,$1C(a0)
-		bne.s	locret_1AC8C
-		move.b	($FFFFF603).w,d0
-		andi.b	#$70,d0
-		beq.w	locret_1AC8C
-		move.b	#2,$1C(a0)	; changed from #9
-		move.w	#$BE,d0		; changed from #$E0
-		jsr	(PlaySound_Special).l
-		addq.l	#4,sp
-		move.b	#1,$39(a0)
-		move.w	#0,$3A(a0)
-		cmpi.b	#$C,$28(a0)
-		bcs.s	loc_1AC84
-		move.b	#2,($FFFFD11C).w
-
-loc_1AC84:
-		bsr.w	Sonic_LevelBound
-		bsr.w	Sonic_AnglePos
-
-locret_1AC8C:
-		rts	
-; ---------------------------------------------------------------------------
-
-loc_1AC8E:
-		move.b	($FFFFF602).w,d0
-		btst	#1,d0
-		bne.w	loc_1AD30
-		move.b	#$E,$16(a0)
-		move.b	#7,$17(a0)
-		move.b	#2,$1C(a0)
-		addq.w	#5,$C(a0)
-		move.b	#0,$39(a0)
-		moveq	#0,d0
-		move.b	$3A(a0),d0
-		add.w	d0,d0
-		move.w	Dash_Speeds(pc,d0.w),$14(a0)
-		move.w	$14(a0),d0
-		subi.w	#$800,d0
-		add.w	d0,d0
-		andi.w	#$1F00,d0
-		neg.w	d0
-		addi.w	#$2000,d0
-		move.w	d0,($FFFFEED0).w
-		btst	#0,$22(a0)
-		beq.s	loc_1ACF4
-		neg.w	$14(a0)
-
-loc_1ACF4:
-		bset	#2,$22(a0)
-		move.b	#0,($FFFFD11C).w
-		move.w	#$BC,d0
-		jsr	(PlaySound_Special).l
-		bra.s	loc_1AD78
-; ===========================================================================
-Dash_Speeds:	dc.w  $800		; 0
-		dc.w  $880		; 1
-		dc.w  $900		; 2
-		dc.w  $980		; 3
-		dc.w  $A00		; 4
-		dc.w  $A80		; 5
-		dc.w  $B00		; 6
-		dc.w  $B80		; 7
-		dc.w  $C00		; 8
-; ===========================================================================
-
-loc_1AD30:				; If still charging the dash...
-		tst.w	$3A(a0)
-		beq.s	loc_1AD48
-		move.w	$3A(a0),d0
-		lsr.w	#5,d0
-		sub.w	d0,$3A(a0)
-		bcc.s	loc_1AD48
-		move.w	#0,$3A(a0)
-
-loc_1AD48:
-		move.b	($FFFFF603).w,d0
-		andi.b	#$70,d0	; 'p'
-		beq.w	loc_1AD78
-	;	move.w	#$900,$1C(a0)
-		move.w	#$BE,d0		; changed from #$E0
-		jsr	(PlaySound_Special).l
-		addi.w	#$200,$3A(a0)
-		cmpi.w	#$800,$3A(a0)
-		bcs.s	loc_1AD78
-		move.w	#$800,$3A(a0)
-
-loc_1AD78:
-		addq.l	#4,sp
-		cmpi.w	#$60,($FFFFEED8).w
-		beq.s	loc_1AD8C
-		bcc.s	loc_1AD88
-		addq.w	#4,($FFFFEED8).w
-
-loc_1AD88:
-		subq.w	#2,($FFFFEED8).w
-
-loc_1AD8C:
-		bsr.w	Sonic_LevelBound
-		bsr.w	Sonic_AnglePos
-		move.w	#$60,($FFFFF73E).w	; reset looking up/down
-		rts
-; End of subroutine Sonic_SpinDash
 ; ---------------------------------------------------------------------------
 ; Subroutine to make Sonic perform a spindash
 ; ---------------------------------------------------------------------------
@@ -30018,9 +29903,9 @@ Obj7D_Delete:
 		jmp	DeleteObject
 ; ===========================================================================
 Obj7D_Points:	dc.w 0			; Bonus	points array
-		dc.w 1000		; earn 1000*10 points for revealing 10000 object
-		dc.w 100		; earn 100*10 points for revealing 1000 object
-		dc.w 10			; earn 10*10 points for revealing 100 object
+		dc.w 1000
+		dc.w 100
+		dc.w 1
 ; ===========================================================================
 
 Obj7D_DelayDel:				; XREF: Obj7D_Index
