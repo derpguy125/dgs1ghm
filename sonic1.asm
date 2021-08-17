@@ -3359,8 +3359,6 @@ StartCheck:
 		beq.w	loc_317C	; if not, branch
 
 Title_ChkLevSel:
-		tst.b	($FFFFFFE0).w	; check	if level select	code is	on
-		beq.w	PlayLevel	; if not, play level
 		btst	#6,($FFFFF604).w ; check if A is pressed
 		beq.w	PlayLevel	; if not, play level
 		moveq	#2,d0
@@ -12684,14 +12682,18 @@ Obj2E_Move:				; XREF: Obj2E_Index
 		addi.w	#$18,$12(a0)	; reduce object	speed
 		rts	
 ; ===========================================================================
-
-Obj2E_ChkEggman:			; XREF: Obj2E_Move
-		addq.b	#2,$24(a0)
-		move.w	#29,$1E(a0)
-		move.b	$1C(a0),d0
-		cmpi.b	#1,d0		; does monitor contain Eggman?
-		bne.s	Obj2E_ChkSonic
-		rts			; Eggman monitor does nothing
+Obj2E_ChkEggman:    ; XREF: Obj2E_Move
+        addq.b    #2,$24(a0)
+        move.w    #29,$1E(a0)
+        move.b    $1C(a0),d0
+        cmpi.b    #1,d0; does monitor contain Eggman?
+        bne.s    Obj2E_ChkSonic ; if not, go and check for the next monitor type (1-up icon)
+        move.l    a0,a1 ; move a0 to a1, because Touch_ChkHurt wants the damaging object to be in a1
+        move.l    a0,-(sp) ; push a0 on the stack, and decrement stack pointer
+        lea    ($FFFFD000).w,a0 ; put Sonic's ram address in a0, because Touch_ChkHurt wants the damaged object to be in a0
+        jsr    Touch_ChkHurt ; run the Touch_ChkHurt routine
+        move.l    (sp)+,a0 ; pop the previous value of a0 from the stack, and increment stack pointer
+        rts ; The Eggman monitor now does something!
 ; ===========================================================================
 
 Obj2E_ChkSonic:
@@ -12770,8 +12772,13 @@ Obj2E_RingSound:
 
 Obj2E_ChkS:
 		cmpi.b	#7,d0		; does monitor contain 'S'
-		bne.s	Obj2E_ChkEnd
-		nop	
+		bne	Obj2E_ChkGoggles		; if not, branch to Goggle code
+		nop
+
+Obj2E_ChkGoggles:	
+		cmpi.b	#8,d0		; does monitor contain Goggles?
+		bne	Obj2E_ChkEnd		; if not, branch to ChkEnd
+		nop
 
 Obj2E_ChkEnd:
 		rts			; 'S' and goggles monitors do nothing
