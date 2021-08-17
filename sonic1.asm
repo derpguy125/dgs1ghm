@@ -12593,6 +12593,10 @@ loc_A246:
 loc_A25C:
 		btst	#5,$22(a0)
 		beq.s	Obj26_Animate
+		cmp.b	#2,$1C(a1)	; check if in jumping/rolling animation
+		beq.s	loc_A26A
+		cmp.b	#$17,$1C(a1)	; check if in drowning animation
+		beq.s	loc_A26A
 		move.w	#1,$1C(a1)
 
 loc_A26A:
@@ -19461,6 +19465,12 @@ loc_FB8C:
 loc_FB92:
 		btst	#5,$22(a0)
 		beq.s	loc_FBAC
+		cmp.b	#2,$1C(a1)	; check if in jumping/rolling animation
+		beq.s	loc_FBA0
+		cmp.b	#$17,$1C(a1)	; check if in drowning animation
+		beq.s	loc_FBA0
+		cmp.b	#$1A,$1C(a1)	; check if in hurt animation
+		beq.s	loc_FBA0
 		move.w	#1,$1C(a1)	; use walking animation
 
 loc_FBA0:
