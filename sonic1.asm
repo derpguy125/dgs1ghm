@@ -3359,8 +3359,6 @@ StartCheck:
 		beq.w	loc_317C	; if not, branch
 
 Title_ChkLevSel:
-		tst.b	($FFFFFFE0).w	; check	if level select	code is	on
-		beq.w	PlayLevel	; if not, play level
 		btst	#6,($FFFFF604).w ; check if A is pressed
 		beq.w	PlayLevel	; if not, play level
 		moveq	#2,d0
