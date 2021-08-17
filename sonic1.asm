@@ -11,6 +11,9 @@
 ; This file should be compiled with "as	-M"
 
 ; ===========================================================================
+
+Current_Character	equ	$FFFFFFF9
+
 align macro
 	cnop 0,\1
 	endm
@@ -598,16 +601,7 @@ loc_CD4:				; XREF: loc_C76
 		move.w	#$7800,(a5)
 		move.w	#$83,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		tst.b	($FFFFF767).w
-		beq.s	loc_D50
-		lea	($C00004).l,a5
-		move.l	#$94019370,(a5)
-		move.l	#$96E49500,(a5)
-		move.w	#$977F,(a5)
-		move.w	#$7000,(a5)
-		move.w	#$83,($FFFFF640).w
-		move.w	($FFFFF640).w,(a5)
-		move.b	#0,($FFFFF767).w
+		jsr (ProcessDMAQueue).l
 
 loc_D50:
 		move.w	#0,($A11100).l
@@ -673,16 +667,7 @@ loc_DAE:
 		move.w	($FFFFF640).w,(a5)
 		move.w	#0,($A11100).l
 		bsr.w	PalCycle_SS
-		tst.b	($FFFFF767).w
-		beq.s	loc_E64
-		lea	($C00004).l,a5
-		move.l	#$94019370,(a5)
-		move.l	#$96E49500,(a5)
-		move.w	#$977F,(a5)
-		move.w	#$7000,(a5)
-		move.w	#$83,($FFFFF640).w
-		move.w	($FFFFF640).w,(a5)
-		move.b	#0,($FFFFF767).w
+		jsr (ProcessDMAQueue).l
 
 loc_E64:
 		tst.w	($FFFFF614).w
@@ -739,16 +724,7 @@ loc_EEE:
 		move.w	#$7800,(a5)
 		move.w	#$83,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		tst.b	($FFFFF767).w
-		beq.s	loc_F54
-		lea	($C00004).l,a5
-		move.l	#$94019370,(a5)
-		move.l	#$96E49500,(a5)
-		move.w	#$977F,(a5)
-		move.w	#$7000,(a5)
-		move.w	#$83,($FFFFF640).w
-		move.w	($FFFFF640).w,(a5)
-		move.b	#0,($FFFFF767).w
+		jsr (ProcessDMAQueue).l
 
 loc_F54:
 		move.w	#0,($A11100).l	; start	the Z80
@@ -805,16 +781,7 @@ loc_FAE:
 		move.w	#$83,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
 		move.w	#0,($A11100).l	; start	the Z80
-		tst.b	($FFFFF767).w
-		beq.s	loc_1060
-		lea	($C00004).l,a5
-		move.l	#$94019370,(a5)
-		move.l	#$96E49500,(a5)
-		move.w	#$977F,(a5)
-		move.w	#$7000,(a5)
-		move.w	#$83,($FFFFF640).w
-		move.w	($FFFFF640).w,(a5)
-		move.b	#0,($FFFFF767).w
+		jsr (ProcessDMAQueue).l
 
 loc_1060:
 		tst.w	($FFFFF614).w
@@ -2862,6 +2829,8 @@ Pal_SegaBG:	incbin	pallet\sega_bg.bin
 Pal_Title:	incbin	pallet\title.bin
 Pal_LevelSel:	incbin	pallet\levelsel.bin
 Pal_Sonic:	incbin	pallet\sonic.bin
+Pal_Snorc:	incbin	pallet\snorc.bin
+Pal_DG:		incbin	pallet\dg.bin
 Pal_GHZ:	incbin	pallet\ghz.bin
 Pal_LZ:		incbin	pallet\lz.bin
 Pal_LZWater:	incbin	pallet\lz_uw.bin	; LZ underwater pallets
@@ -2875,9 +2844,53 @@ Pal_SBZ3:	incbin	pallet\sbz_act3.bin	; SBZ act 3 pallets
 Pal_SBZ3Water:	incbin	pallet\sbz_a3uw.bin	; SBZ act 3 (underwater) pallets
 Pal_LZSonWater:	incbin	pallet\son_lzuw.bin	; Sonic (underwater in LZ) pallet
 Pal_SBZ3SonWat:	incbin	pallet\son_sbzu.bin	; Sonic (underwater in SBZ act 3) pallet
+Pal_LZSnorcWater:	incbin	pallet\snorc_lz.bin	; Sonic (underwater in LZ) pallet
+Pal_SBZ3SnorcWater:	incbin	pallet\snorc_sbz3.bin	; Sonic (underwater in SBZ act 3) pallet
 Pal_SpeResult:	incbin	pallet\ssresult.bin	; special stage results screen pallets
 Pal_SpeContinue:incbin	pallet\sscontin.bin	; special stage results screen continue pallet
 Pal_Ending:	incbin	pallet\ending.bin	; ending sequence pallets
+
+CharPalList:        dc.l Pal_Sonic, Pal_Snorc, Pal_DG
+CharPalListLZ:      dc.l Pal_LZSonWater, Pal_LZSnorcWater, Pal_LZSnorcWater
+CharPalListSBZ3:    dc.l Pal_SBZ3SonWat, Pal_SBZ3SnorcWater, Pal_SBZ3SnorcWater
+
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Subroutine to load correct player pallets
+; ---------------------------------------------------------------------------
+ 
+LoadPlayerPalettes:
+        moveq   #0,d1
+        move.b  Current_Character.w,d1      ; get character ID
+        move.l  CharPalList(pc,d1.w),a1     ; get normal palette to a1
+ 
+        moveq   #7,d0               ; 16 palette entries
+        bsr.s   Loc_Pal             ; load palettes to RAM
+        cmpi.b  #1,$FFFFFE10.w          ; is LZ?
+        bne.s   LPP_rts             ; if not, branch
+ 
+        move.l  CharPalListLZ(pc,d1.w),a1   ; get underwater palette to a1
+        cmpi.b  #3,$FFFFFE11.w          ; is act number 3?
+        bne.s   LPP_UWPal           ; if not, branch
+                move.l  CharPalListSBZ3(pc,d1.w),a1 ; get SBZ3 underwater palette to a1
+ 
+LPP_UWPal:
+        moveq   #7,d0               ; 16 palette entries
+        lea (a3),a2             ; put water palette to a2
+        bsr.s   Loc_Pal             ; load to RAM
+ 
+LPP_rts:
+        rts                 ; return
+ 
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; copy d0 + 1 longwords from a1 to a2
+; ---------------------------------------------------------------------------
+ 
+loc_Pal:
+        move.l  (a1)+,(a2)+     ; process next 2 palette entries
+        dbf d0,loc_Pal      ; keep looping until d0 is 0
+        rts             ; return
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to	delay the program by ($FFFFF62A) frames
@@ -3160,8 +3173,10 @@ Title_ClrPallet:
 		move.l	d0,(a1)+
 		dbf	d1,Title_ClrPallet ; fill pallet with 0	(black)
 
-		moveq	#3,d0		; load Sonic's pallet
-		bsr.w	PalLoad1
+		lea $FFFFFB80,a2        ; normal target palette
+        lea $FFFFFA00,a3        ; underwater target palette
+        bsr LoadPlayerPalettes  ; load palette for current character
+		
 		move.b	#$8A,($FFFFD080).w ; load "SONIC TEAM PRESENTS"	object
 		jsr	ObjectsLoad
 		jsr	BuildSprites
@@ -3324,6 +3339,22 @@ Title_CountC:
 loc_3230:
 		tst.w	($FFFFF614).w
 		beq.w	Demo
+		
+Title_CheckForB:
+		cmpi.b	#$10, ($FFFFF605).w	; has B been pressed?
+		bne.s	StartCheck		; if not, branch
+Title_SecondCharacter:
+		cmpi.b  #$08, ($FFFFFFF9).w ; are we dg
+		beq.b	Title_BackTo0		; if so, switch to sos
+		addi.b	#$04, ($FFFFFFF9).w	; switch character
+		jmp 	Title_SFX	; jump to StartCheck so i dont get back into Title_Switcheroo FUCK.
+Title_BackTo0:
+		move.b #$00, ($FFFFFFF9).w ;back to 0
+Title_SFX:
+		move.b	#$CD,d0			; put value of death sound into d0
+		bsr.w	PlaySound_Special	; jump to the subroutine that plays the sound currently in d0 ($A3, at the moment)
+
+StartCheck:
 		andi.b	#$80,($FFFFF605).w ; check if Start is pressed
 		beq.w	loc_317C	; if not, branch
 
@@ -3773,6 +3804,8 @@ Level_ClrVars3:
 		move.w	#$8720,(a6)
 		move.w	#$8ADF,($FFFFF624).w
 		move.w	($FFFFF624).w,(a6)
+		clr.w ($FFFFC800).w
+		move.l #$FFFFC800,($FFFFC8FC).w
 		cmpi.b	#1,($FFFFFE10).w ; is level LZ?
 		bne.s	Level_LoadPal	; if not, branch
 		move.w	#$8014,(a6)
@@ -3791,20 +3824,15 @@ Level_ClrVars3:
 Level_LoadPal:
 		move.w	#$1E,($FFFFFE14).w
 		move	#$2300,sr
-		moveq	#3,d0
-		bsr.w	PalLoad2	; load Sonic's pallet line
-		cmpi.b	#1,($FFFFFE10).w ; is level LZ?
-		bne.s	Level_GetBgm	; if not, branch
-		moveq	#$F,d0		; pallet number	$0F (LZ)
-		cmpi.b	#3,($FFFFFE11).w ; is act number 3?
-		bne.s	Level_WaterPal	; if not, branch
-		moveq	#$10,d0		; pallet number	$10 (SBZ3)
-
-Level_WaterPal:
-		bsr.w	PalLoad3_Water	; load underwater pallet (see d0)
-		tst.b	($FFFFFE30).w
-		beq.s	Level_GetBgm
-		move.b	($FFFFFE53).w,($FFFFF64E).w
+		        lea $FFFFFB00,a2        ; normal palette
+        lea $FFFFFA80,a3        ; underwater palette
+        bsr LoadPlayerPalettes  ; load palette for current character
+ 
+        cmpi.b  #1,$FFFFFE10.w      ; is level LZ?
+        bne.s   Level_GetBgm        ; if not, branch
+        tst.b   $FFFFFE30.w     ; has lamppost been hit?
+        beq.s   Level_GetBgm        ; if not, branch
+        move.b  $FFFFFE53.w,$FFFFF64E.w ; copy water direction to lamppost RAM
 
 Level_GetBgm:
 		tst.w	($FFFFFFF0).w
@@ -3840,8 +3868,9 @@ Level_TtlCard:
 		jsr	Hud_Base
 
 loc_3946:
-		moveq	#3,d0
-		bsr.w	PalLoad1	; load Sonic's pallet line
+        lea $FFFFFB80,a2        ; normal target palette
+        lea $FFFFFA00,a3        ; underwater target palette
+        bsr LoadPlayerPalettes  ; load palette for current character
 		bsr.w	LevelSizeLoad
 		bsr.w	DeformBgLayer
 		bset	#2,($FFFFF754).w
@@ -4934,6 +4963,8 @@ loc_47D4:
 		lea	(Nem_TitleCard).l,a0 ; load title card patterns
 		bsr.w	NemDec
 		jsr	Hud_Base
+		clr.w ($FFFFC800).w
+		move.l #$FFFFC800,($FFFFC8FC).w 
 		move	#$2300,sr
 		moveq	#$11,d0
 		bsr.w	PalLoad2	; load results screen pallet
@@ -5052,6 +5083,102 @@ loc_491C:
 		bsr.w	ShowVDPGraphics
 		rts	
 ; End of function SS_BGLoad
+
+; ---------------------------------------------------------------------------
+; Subroutine for queueing VDP commands (seems to only queue transfers to VRAM),
+; to be issued the next time ProcessDMAQueue is called.
+; Can be called a maximum of 18 times before the buffer needs to be cleared
+; by issuing the commands (this subroutine DOES check for overflow)
+; ---------------------------------------------------------------------------
+; In case you wish to use this queue system outside of the spin dash, this is the
+; registers in which it expects data in:
+; d1.l: Address to data (In 68k address space)
+; d2.w: Destination in VRAM
+; d3.w: Length of data
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; sub_144E: DMA_68KtoVRAM: QueueCopyToVRAM: QueueVDPCommand: Add_To_DMA_Queue:
+QueueDMATransfer:
+		movea.l ($FFFFC8FC).w,a1
+		cmpa.w #$C8FC,a1
+		beq.s QueueDMATransfer_Done ; return if there's no more room in the buffer
+
+		; piece together some VDP commands and store them for later...
+		move.w #$9300,d0 ; command to specify DMA transfer length & $00FF
+		move.b d3,d0
+		move.w d0,(a1)+ ; store command
+
+		move.w #$9400,d0 ; command to specify DMA transfer length & $FF00
+		lsr.w #8,d3
+		move.b d3,d0
+		move.w d0,(a1)+ ; store command
+
+		move.w #$9500,d0 ; command to specify source address & $0001FE
+		lsr.l #1,d1
+		move.b d1,d0
+		move.w d0,(a1)+ ; store command
+
+		move.w #$9600,d0 ; command to specify source address & $01FE00
+		lsr.l #8,d1
+		move.b d1,d0
+		move.w d0,(a1)+ ; store command
+
+		move.w #$9700,d0 ; command to specify source address & $FE0000
+		lsr.l #8,d1
+		move.b d1,d0
+		move.w d0,(a1)+ ; store command
+
+		andi.l #$FFFF,d2 ; command to specify destination address and begin DMA
+		lsl.l #2,d2
+		lsr.w #2,d2
+		swap d2
+		ori.l #$40000080,d2 ; set bits to specify VRAM transfer
+		move.l d2,(a1)+ ; store command
+
+		move.l a1,($FFFFC8FC).w ; set the next free slot address
+		cmpa.w #$C8FC,a1
+		beq.s QueueDMATransfer_Done ; return if there's no more room in the buffer
+		move.w #0,(a1) ; put a stop token at the end of the used part of the buffer
+		; return_14AA:
+QueueDMATransfer_Done:
+		rts
+; End of function QueueDMATransfer
+
+
+; ---------------------------------------------------------------------------
+; Subroutine for issuing all VDP commands that were queued
+; (by earlier calls to QueueDMATransfer)
+; Resets the queue when it's done
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; sub_14AC: CopyToVRAM: IssueVDPCommands: Process_DMA: Process_DMA_Queue:
+ProcessDMAQueue:
+		lea ($C00004).l,a5
+		lea ($FFFFC800).w,a1
+		; loc_14B6:
+		ProcessDMAQueue_Loop:
+		move.w (a1)+,d0
+		beq.s ProcessDMAQueue_Done ; branch if we reached a stop token
+		; issue a set of VDP commands...
+		move.w d0,(a5) ; transfer length
+		move.w (a1)+,(a5) ; transfer length
+		move.w (a1)+,(a5) ; source address
+		move.w (a1)+,(a5) ; source address
+		move.w (a1)+,(a5) ; source address
+		move.w (a1)+,(a5) ; destination
+		move.w (a1)+,(a5) ; destination
+		cmpa.w #$C8FC,a1
+		bne.s ProcessDMAQueue_Loop ; loop if we haven't reached the end of the buffer
+; loc_14CE:
+ProcessDMAQueue_Done:
+		move.w #0,($FFFFC800).w
+		move.l #$FFFFC800,($FFFFC8FC).w
+		rts
+; End of function ProcessDMAQueue
 
 ; ---------------------------------------------------------------------------
 ; Pallet cycling routine - special stage
@@ -5625,8 +5752,9 @@ End_LoadData:
 		lea	(Kos_EndFlowers).l,a0 ;	load extra flower patterns
 		lea	($FFFF9400).w,a1 ; RAM address to buffer the patterns
 		bsr.w	KosDec
-		moveq	#3,d0
-		bsr.w	PalLoad1	; load Sonic's pallet
+		lea $FFFFFB80,a2        ; normal target palette
+        lea $FFFFFA00,a3        ; underwater target palette
+        bsr LoadPlayerPalettes  ; load palette for current character
 		move.w	#$8B,d0
 		bsr.w	PlaySound	; play ending sequence music
 		btst	#6,($FFFFF604).w ; is button A pressed?
@@ -6074,8 +6202,9 @@ Cred_ClrPallet:
 		move.l	d0,(a1)+
 		dbf	d1,Cred_ClrPallet ; fill pallet	with black ($0000)
 
-		moveq	#3,d0
-		bsr.w	PalLoad1	; load Sonic's pallet
+        lea $FFFFFB80,a2        ; normal target palette
+        lea $FFFFFA00,a3        ; underwater target palette
+        bsr LoadPlayerPalettes  ; load palette for current character
 		move.b	#$8A,($FFFFD080).w ; load credits object
 		jsr	ObjectsLoad
 		jsr	BuildSprites
@@ -23461,6 +23590,8 @@ Ani_obj65:
 Map_obj65:
 	include "_maps\obj65.asm"
 
+Player_MapLoc:      dc.l Map_Sonic, Map_Snorc, Map_DG
+
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Object 01 - Sonic
@@ -23489,7 +23620,12 @@ Obj01_Main:				; XREF: Obj01_Index
 		addq.b	#2,$24(a0)
 		move.b	#$13,$16(a0)
 		move.b	#9,$17(a0)
-		move.l	#Map_Sonic,4(a0)
+		moveq   #0,d0           ; quickly clear d0
+        move.b  Current_Character.w,d0  ; get character ID
+ 
+        move.l  #Player_MapLoc,a1   ; get players mapping location array
+        add.l   d0,a1           ; get correct mapping for player
+        move.l  (a1),4(a0)      ; put it to Sonic's mappings
 		move.w	#$780,2(a0)
 		move.b	#2,$18(a0)
 		move.b	#$18,$19(a0)
@@ -25022,10 +25158,12 @@ locret_139C2:
 ; ---------------------------------------------------------------------------
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
-
+Player_AniDat:     dc.l SonicAniData, SonicAniData, SonicAniData
 
 Sonic_Animate:				; XREF: Obj01_Control; et al
-		lea	(SonicAniData).l,a1
+		moveq   #0,d0           ; quickly clear d0
+        move.b  Current_Character.w,d0  ; get character ID
+        movea.l Player_AniDat(pc,d0.w),a1   ; put players animation data to a1
 		moveq	#0,d0
 		move.b	$1C(a0),d0
 		cmp.b	$1D(a0),d0	; is animation set to restart?
@@ -25118,10 +25256,13 @@ loc_13A78:
 		neg.w	d2
 
 loc_13A9C:
-		lea	(SonAni_Run).l,a1 ; use	running	animation
-		cmpi.w	#$600,d2	; is Sonic at running speed?
-		bcc.s	loc_13AB4	; if yes, branch
-		lea	(SonAni_Walk).l,a1 ; use walking animation
+        moveq   #0,d4           ; quickly clear d0
+        move.b  Current_Character.w,d4  ; get character ID
+        movea.l PAni_Run(pc,d4.w),a1    ; put players running animation to a1
+ 
+        cmpi.w  #$600,d2        ; is Sonic at running speed?
+        bcc.s   loc_13AB4       ; if yes, branch
+        movea.l PAni_Walk(pc,d4.w),a1   ; put players walking animation to a1
 		move.b	d0,d1
 		lsr.b	#1,d1
 		add.b	d1,d0
@@ -25142,6 +25283,12 @@ loc_13AC2:
 		rts	
 ; ===========================================================================
 
+PAni_Run:   dc.l SonAni_Run,    SonAni_Run,    SonAni_Run
+PAni_Walk:  dc.l SonAni_Walk,   SonAni_Walk,   SonAni_Walk
+PAni_Roll2: dc.l SonAni_Roll2,  SonAni_Roll2,  SonAni_Roll2
+PAni_Roll:  dc.l SonAni_Roll,   SonAni_Roll,   SonAni_Roll
+PAni_Push:  dc.l SonAni_Push,   SonAni_Push,   SonAni_Push
+
 SAnim_RollJump:				; XREF: SAnim_WalkRun
 		addq.b	#1,d0		; is animation rolling/jumping?
 		bne.s	SAnim_Push	; if not, branch
@@ -25150,10 +25297,13 @@ SAnim_RollJump:				; XREF: SAnim_WalkRun
 		neg.w	d2
 
 loc_13ADE:
-		lea	(SonAni_Roll2).l,a1 ; use fast animation
-		cmpi.w	#$600,d2	; is Sonic moving fast?
-		bcc.s	loc_13AF0	; if yes, branch
-		lea	(SonAni_Roll).l,a1 ; use slower	animation
+        moveq   #0,d4           ; quickly clear d0
+        move.b  Current_Character.w,d4  ; get character ID
+        movea.l PAni_Roll2(pc,d4.w),a1  ; put players fast rolling animation to a1
+ 
+        cmpi.w  #$600,d2        ; is Sonic moving fast?
+        bcc.s   loc_13AF0       ; if yes, branch
+        movea.l PAni_Roll(pc,d4.w),a1   ; put players slow rolling animation to a1
 
 loc_13AF0:
 		neg.w	d2
@@ -25184,7 +25334,9 @@ loc_13B1E:
 loc_13B26:
 		lsr.w	#6,d2
 		move.b	d2,$1E(a0)	; modify frame duration
-		lea	(SonAni_Push).l,a1
+		moveq   #0,d4           ; quickly clear d0
+        move.b  Current_Character.w,d4  ; get character ID
+        movea.l PAni_Push(pc,d4.w),a1   ; put players fast rolling animation to a1
 		move.b	$22(a0),d1
 		andi.b	#1,d1
 		andi.b	#$FC,1(a0)
@@ -25202,45 +25354,61 @@ SonicAniData:
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
+Player_DPLCLoc:     dc.l SonicDynPLC, SnorcDynPLC, DGDynPLC
+Player_ArtLoc:      dc.l Art_Sonic, Art_Snorc, Art_DG
 
-LoadSonicDynPLC:			; XREF: Obj01_Control; et al
-		moveq	#0,d0
-		move.b	$1A(a0),d0	; load frame number
-		cmp.b	($FFFFF766).w,d0
-		beq.s	locret_13C96
-		move.b	d0,($FFFFF766).w
-		lea	(SonicDynPLC).l,a2
-		add.w	d0,d0
-		adda.w	(a2,d0.w),a2
-		moveq	#0,d1
-		move.b	(a2)+,d1	; read "number of entries" value
-		subq.b	#1,d1
-		bmi.s	locret_13C96
-		lea	($FFFFC800).w,a3
-		move.b	#1,($FFFFF767).w
-
-SPLC_ReadEntry:
-		moveq	#0,d2
-		move.b	(a2)+,d2
-		move.w	d2,d0
-		lsr.b	#4,d0
-		lsl.w	#8,d2
-		move.b	(a2)+,d2
-		lsl.w	#5,d2
-		lea	(Art_Sonic).l,a1
-		adda.l	d2,a1
-
-SPLC_LoadTile:
-		movem.l	(a1)+,d2-d6/a4-a6
-		movem.l	d2-d6/a4-a6,(a3)
-		lea	$20(a3),a3	; next tile
-		dbf	d0,SPLC_LoadTile ; repeat for number of	tiles
-
-		dbf	d1,SPLC_ReadEntry ; repeat for number of entries
-
-locret_13C96:
-		rts	
+LoadSonicDynPLC:
+        moveq   #0,d0               ; quickly clear d0
+        move.b  Current_Character.w,d0      ; get character ID
+ 
+        movea.l Player_DPLCLoc(pc,d0.w),a2  ; put players DPLC location to a2
+        move.l  Player_ArtLoc(pc,d0.w),d6   ; put players art location to a2
+        move.w  #$F000,d4           ; offset in VRAM to store art
+ 
+        moveq   #0,d0
+        move.b  $1A(a0),d0  ; load frame number
+        cmp.b   $FFFFF766.w,d0  ; check if equal with last queued frame
+        beq.s   DPLC_End    ; if is, don't load new DPLC
+        move.b  d0,$FFFFF766.w  ; remember queued frame
 ; End of function LoadSonicDynPLC
+ 
+; ---------------------------------------------------------------------------
+; Subroutine to queue any pattern load cue
+; Input: a2 - DPLC file, d4 - VRAM address, d6 - Art file, d0 - frame number
+; ---------------------------------------------------------------------------
+ 
+Load_DPLC:
+        add.w   d0,d0       ; multiply by 2
+        adda.w  (a2,d0.w),a2    ; get the right DPLC location
+        moveq   #0,d5       ; quckly clear d5
+        move.b  (a2)+,d5    ; then move the amount of requests to d5
+        subq.w  #1,d5       ; subtract 1
+        bmi.s   DPLC_End    ; if negative, branch away
+ 
+DPLC_ReadEntry:
+        moveq   #0,d1
+        move.b  (a2)+,d1    ; get first byte to d1, and increment pointer
+        lsl.w   #8,d1       ; shift 8 bits left
+        move.b  (a2)+,d1    ; move second byte to d1
+ 
+        move.w  d1,d3       ; move d1 to d3
+        lsr.w   #8,d3       ; shift 8 bits right
+        andi.w  #$F0,d3     ; leave only bits 7, 6, 5, and 4
+        addi.w  #$10,d3     ; add $10 to d3
+ 
+        andi.w  #$FFF,d1    ; filter out bits 15, 14, 13 and 12
+        lsl.l   #5,d1       ; shift 5 bits left
+        add.l   d6,d1       ; add the art address to d1
+        move.w  d4,d2       ; move VRAM location to d2
+        add.w   d3,d4       ; add d3 to VRAM address
+        add.w   d3,d4       ; add d3 to VRAM address
+ 
+        jsr QueueDMATransfer; Save it to the DMA queue
+        dbf d5,DPLC_ReadEntry; repeat for number of requests
+ 
+DPLC_End:
+        rts         ; return
+		; End of function LoadSonicDynPLC
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -35400,7 +35568,12 @@ Obj09_Main:				; XREF: Obj09_Index
 		addq.b	#2,$24(a0)
 		move.b	#$E,$16(a0)
 		move.b	#7,$17(a0)
-		move.l	#Map_Sonic,4(a0)
+        moveq   #0,d0           ; quickly clear d0
+        move.b  Current_Character.w,d0  ; get character ID
+ 
+        move.l  #Player_MapLoc,a1   ; get players mapping location array
+        add.l   d0,a1           ; get correct mapping for player
+        move.l  (a1),4(a0)      ; put it to Sonic's mappings
 		move.w	#$780,2(a0)
 		move.b	#4,1(a0)
 		move.b	#0,$18(a0)
@@ -37607,12 +37780,49 @@ Map_Sonic:
 ; ---------------------------------------------------------------------------
 SonicDynPLC:
 	include "_inc\Sonic dynamic pattern load cues.asm"
+	
+; ---------------------------------------------------------------------------
+; Sprite mappings - Sonic
+; ---------------------------------------------------------------------------
+Map_Snorc:
+	include "_maps\Snorc.asm"
+
+; ---------------------------------------------------------------------------
+; Uncompressed graphics	loading	array for Sonic
+; ---------------------------------------------------------------------------
+SnorcDynPLC:
+	include "_inc\Snorc dynamic pattern load cues.asm"
+	
+; ---------------------------------------------------------------------------
+; Sprite mappings - Sonic
+; ---------------------------------------------------------------------------
+Map_DG:
+	include "_maps\DG.asm"
+
+; ---------------------------------------------------------------------------
+; Uncompressed graphics	loading	array for Sonic
+; ---------------------------------------------------------------------------
+DGDynPLC:
+	include "_inc\DG dynamic pattern load cues.asm"
 
 ; ---------------------------------------------------------------------------
 ; Uncompressed graphics	- Sonic
 ; ---------------------------------------------------------------------------
 Art_Sonic:	incbin	artunc\sonic.bin	; Sonic
 		even
+		
+; ---------------------------------------------------------------------------
+; Uncompressed graphics	- Snorc
+; ---------------------------------------------------------------------------
+Art_Snorc:	incbin	artunc\snorc.bin	; Sonic
+		even
+		
+; ---------------------------------------------------------------------------
+; Uncompressed graphics	- dg
+; ---------------------------------------------------------------------------
+Art_DG:	incbin	artunc\dg.bin	; Sonic
+		even
+		
 ; ---------------------------------------------------------------------------
 ; Compressed graphics - various
 ; ---------------------------------------------------------------------------
@@ -38894,22 +39104,25 @@ Sound_ExIndex:
 ; Play "Say-gaa" PCM sound
 ; ---------------------------------------------------------------------------
 
-Sound_E1:				; XREF: Sound_ExIndex
-		move.b	#$88,($A01FFF).l
-		move.w	#0,($A11100).l	; start	the Z80
-		move.w	#$11,d1
-
-loc_71FC0:
-		move.w	#-1,d0
-
-loc_71FC4:
-		nop	
-		dbf	d0,loc_71FC4
-
-		dbf	d1,loc_71FC0
-
-		addq.w	#4,sp
-		rts	
+Sound_E1:				  
+		lea	(SegaPCM).l,a2			; Load the SEGA PCM sample into a2. It's important that we use a2 since a0 and a1 are going to be used up ahead when reading the joypad ports 
+		move.l	#(SegaPCM_End-SegaPCM),d3			; Load the size of the SEGA PCM sample into d3 
+		move.b	#$2A,($A04000).l		; $A04000 = $2A -> Write to DAC channel	  
+PlayPCM_Loop:	  
+		move.b	(a2)+,($A04001).l		; Write the PCM data (contained in a2) to $A04001 (YM2612 register D0) 
+		move.w	#$14,d0				; Write the pitch ($14 in this case) to d0 
+		dbf	d0,*				; Decrement d0; jump to itself if not 0. (for pitch control, avoids playing the sample too fast)  
+		sub.l	#1,d3				; Subtract 1 from the PCM sample size 
+		beq.s	return_PlayPCM			; If d3 = 0, we finished playing the PCM sample, so stop playing, leave this loop, and unfreeze the 68K 
+		lea	($FFFFF604).w,a0		; address where JoyPad states are written 
+		lea	($A10003).l,a1			; address where JoyPad states are read from 
+		jsr	(Joypad_Read).w			; Read only the first joypad port. It's important that we do NOT do the two ports, we don't have the cycles for that 
+		btst	#7,($FFFFF604).w		; Check for Start button 
+		bne.s	return_PlayPCM			; If start is pressed, stop playing, leave this loop, and unfreeze the 68K 
+		bra.s	PlayPCM_Loop			; Otherwise, continue playing PCM sample 
+return_PlayPCM: 
+		addq.w	#4,sp 
+		rts
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Play music track $81-$9F
@@ -40720,7 +40933,7 @@ SoundCF:	incbin	sound\soundCF.bin
 SoundD0:	incbin	sound\soundD0.bin
 		even
 SegaPCM:	incbin	sound\segapcm.bin
-		even
+SegaPCM_End:		even
 
 ; end of 'ROM'
 EndOfRom:
