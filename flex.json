@@ -1,0 +1,58 @@
+{
+    "description": "Flex 2 Project File",
+    "name": "testy",
+    "objects": [
+        {
+            "name": "",
+            "palettes": [
+                {
+                    "path": "pallet\\sonic.bin",
+                    "length": 1
+                }
+            ],
+            "art": {
+                "path": "artnem\\ttlcards.bin",
+                "compression": "Nemesis"
+            },
+            "mappings": {
+                "path": "",
+                "format": "Sonic 1",
+                "customDefinition": "",
+                "label": ""
+            },
+            "dplcs": {
+                "enabled": false,
+                "path": "",
+                "format": "Sonic 1",
+                "customDefinition": "",
+                "label": ""
+            }
+        },
+        {
+            "name": "",
+            "palettes": [
+                {
+                    "path": "pallet\\ghz.bin",
+                    "length": 3
+                }
+            ],
+            "art": {
+                "path": "",
+                "compression": "Uncompressed"
+            },
+            "mappings": {
+                "path": "",
+                "format": "Sonic 1",
+                "customDefinition": "",
+                "label": ""
+            },
+            "dplcs": {
+                "enabled": false,
+                "path": "",
+                "format": "Sonic 1",
+                "customDefinition": "",
+                "label": ""
+            }
+        }
+    ]
+}
