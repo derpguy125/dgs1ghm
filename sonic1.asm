@@ -15109,7 +15109,7 @@ Obj34_MakeSprite:
 		dbf	d1,Obj34_Loop	; repeat sequence another 3 times
 
 Obj34_ChkPos:				; XREF: Obj34_Index
-		moveq	#$10,d1		; set horizontal speed
+		moveq	#$8,d1		; set horizontal speed
 		move.w	$30(a0),d0
 		cmp.w	8(a0),d0	; has item reached the target position?
 		beq.s	loc_C3C8	; if yes, branch

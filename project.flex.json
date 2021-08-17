@@ -1,0 +1,27 @@
+{
+    "Flex": 2,
+    "name": "",
+    "node": "94d9ad76-3ddb-44b3-9427-de497d9817ff",
+    "objects": [
+        {
+            "uuid": "94d9ad76-3ddb-44b3-9427-de497d9817ff",
+            "format": "Sonic 1.js",
+            "name": "ttlca",
+            "palettes": [],
+            "art": {
+                "path": "artnem\\ttlcards.bin",
+                "compression": "Nemesis",
+                "offset": 0
+            },
+            "mappings": {
+                "path": "",
+                "label": ""
+            },
+            "dplcs": {
+                "enabled": false,
+                "path": "",
+                "label": ""
+            }
+        }
+    ]
+}
