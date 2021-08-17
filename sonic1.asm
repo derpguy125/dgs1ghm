@@ -16039,6 +16039,8 @@ Obj36_Upright:				; XREF: Obj36_Solid
 Obj36_Hurt:				; XREF: Obj36_SideWays; Obj36_Upright
 		tst.b	($FFFFFE2D).w	; is Sonic invincible?
 		bne.s	Obj36_Display	; if yes, branch
+		tst.w	($FFFFD030).w	; +++ is Sonic invulnerable?
+		bne.s	Obj36_Display	; +++ if yes, branch
 		move.l	a0,-(sp)
 		movea.l	a0,a2
 		lea	($FFFFD000).w,a0
@@ -24071,7 +24073,7 @@ locret_1307C:
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
 
-Sonic_MoveLeft:				; XREF: Sonic_Move
+Sonic_MoveLeft:		   ; XREF: Sonic_Move
 		move.w	$14(a0),d0
 		beq.s	loc_13086
 		bpl.s	loc_130B2
@@ -24088,12 +24090,15 @@ loc_1309A:
 		neg.w	d1
 		cmp.w	d1,d0
 		bgt.s	loc_130A6
+		add.w	d5,d0
+		cmp.w	d1,d0
+		ble.s	loc_130A6
 		move.w	d1,d0
 
 loc_130A6:
 		move.w	d0,$14(a0)
-		move.b	#0,$1C(a0)	; use walking animation
-		rts	
+		move.b	#0,$1C(a0); use walking animation
+		rts
 ; ===========================================================================
 
 loc_130B2:				; XREF: Sonic_MoveLeft
@@ -24122,7 +24127,7 @@ locret_130E8:
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
 
-Sonic_MoveRight:			; XREF: Sonic_Move
+Sonic_MoveRight:	   ; XREF: Sonic_Move
 		move.w	$14(a0),d0
 		bmi.s	loc_13118
 		bclr	#0,$22(a0)
@@ -24134,12 +24139,15 @@ loc_13104:
 		add.w	d5,d0
 		cmp.w	d6,d0
 		blt.s	loc_1310C
+		sub.w	d5,d0
+		cmp.w	d6,d0
+		bge.s	loc_1310C
 		move.w	d6,d0
 
 loc_1310C:
 		move.w	d0,$14(a0)
-		move.b	#0,$1C(a0)	; use walking animation
-		rts	
+		move.b	#0,$1C(a0); use walking animation
+		rts
 ; ===========================================================================
 
 loc_13118:				; XREF: Sonic_MoveRight
@@ -24297,30 +24305,36 @@ loc_13242:
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
 
-Sonic_ChgJumpDir:			; XREF: Obj01_MdJump; Obj01_MdJump2
+Sonic_ChgJumpDir:		; XREF: Obj01_MdJump; Obj01_MdJump2
 		move.w	($FFFFF760).w,d6
 		move.w	($FFFFF762).w,d5
 		asl.w	#1,d5
-		btst	#4,$22(a0)
-		bne.s	Obj01_ResetScr2
-		move.w	$10(a0),d0
-		btst	#2,($FFFFF602).w ; is left being pressed?
-		beq.s	loc_13278	; if not, branch
-		bset	#0,$22(a0)
-		sub.w	d5,d0
-		move.w	d6,d1
-		neg.w	d1
-		cmp.w	d1,d0
-		bgt.s	loc_13278
+		btst	#4,$22(a0)	
+		bne.s	Obj01_ResetScr2	
+		move.w	$10(a0),d0	
+		btst	#2,($FFFFF602).w; is left being pressed?	
+		beq.s	loc_13278; if not, branch	
+		bset	#0,$22(a0)	
+		sub.w	d5,d0	
+		move.w	d6,d1	
+		neg.w	d1	
+		cmp.w	d1,d0	
+		bgt.s	loc_13278	
+		add.w	d5,d0		; +++ remove this frame's acceleration change
+		cmp.w	d1,d0		; +++ compare speed with top speed
+		ble.s	loc_13278	; +++ if speed was already greater than the maximum, branch	
 		move.w	d1,d0
 
 loc_13278:
-		btst	#3,($FFFFF602).w ; is right being pressed?
-		beq.s	Obj01_JumpMove	; if not, branch
-		bclr	#0,$22(a0)
-		add.w	d5,d0
-		cmp.w	d6,d0
+		btst	#3,($FFFFF602).w; is right being pressed?	
+		beq.s	Obj01_JumpMove; if not, branch	
+		bclr	#0,$22(a0)	
+		add.w	d5,d0	
+		cmp.w	d6,d0	
 		blt.s	Obj01_JumpMove
+		sub.w	d5,d0		; +++ remove this frame's acceleration change
+		cmp.w	d6,d0		; +++ compare speed with top speed
+		bge.s	Obj01_JumpMove	; +++ if speed was already greater than the maximum, branch
 		move.w	d6,d0
 
 Obj01_JumpMove:
