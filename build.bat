@@ -17,5 +17,3 @@ rem snasm68k.exe -emax 0 -p -o ae- s1comb.asm, s1built.bin
 asm68k /o op+ /o os+ /o ow+ /o oz+ /o oaq+ /o osq+ /o omq+ /p /o ae- sonic1.asm, s1built.bin >errors.txt, , sonic.lst
 rompad.exe s1built.bin 255 0
 fixheadr.exe s1built.bin
-
-pause
