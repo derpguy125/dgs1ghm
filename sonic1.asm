@@ -37809,7 +37809,12 @@ Debug_Exit:
 		beq.s	Debug_DoNothing	; if not, branch
 		moveq	#0,d0
 		move.w	d0,($FFFFFE08).w ; deactivate debug mode
-		move.l	#Map_Sonic,($FFFFD004).w
+		moveq   #0,d0           ; quickly clear d0
+        move.b  Current_Character.w,d0  ; get character ID
+ 
+        move.l  #Player_MapLoc,a1   ; get players mapping location array
+        add.l   d0,a1           ; get correct mapping for player
+        move.l  (a1),4(a0)      ; put it to Sonic's mappings
 		move.w	#$780,($FFFFD002).w
 		move.b	d0,($FFFFD01C).w
 		move.w	d0,$A(a0)
