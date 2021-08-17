@@ -3245,7 +3245,7 @@ Title_LoadText:
 		move.w	#$178,($FFFFF614).w ; run title	screen for $178	frames
 		lea	($FFFFD080).w,a1
 		moveq	#0,d0
-		move.w	#7,d1
+		move.w	#$F,d1	; ($40 / 4) - 1
 
 Title_ClrObjRam2:
 		move.l	d0,(a1)+
@@ -4561,7 +4561,7 @@ loc_4056:
 		move.b	(a1),d0
 		lea	($FFFFF604).w,a0
 		move.b	d0,d1
-		move.b	(a0),d2
+		move.b	-2(a0),d2
 		eor.b	d2,d0
 		move.b	d1,(a0)+
 		and.b	d1,d0
@@ -7198,9 +7198,9 @@ ScrollHoriz2:				; XREF: ScrollHoriz
 		move.w	($FFFFD008).w,d0
 		sub.w	($FFFFF700).w,d0
 		subi.w	#$90,d0
-		bcs.s	loc_65F6
+		bmi.s	loc_65F6				; cs to mi (for negative)
 		subi.w	#$10,d0
-		bcc.s	loc_65CC
+		bpl.s	loc_65CC				; cc to pl (for negative)
 		clr.w	($FFFFF73A).w
 		rts	
 ; ===========================================================================
@@ -7225,7 +7225,12 @@ loc_65E4:
 		rts	
 ; ===========================================================================
 
-loc_65F6:				; XREF: ScrollHoriz2
+loc_65F6:
+		cmpi.w	#$FFF0,d0				; has the screen moved more than 10 pixels left?
+		bcc.s	Left_NoMax				; if not, branch
+		move.w	#$FFF0,d0				; set the maximum move distance to 10 pixels left
+
+Left_NoMax:
 		add.w	($FFFFF700).w,d0
 		cmp.w	($FFFFF728).w,d0
 		bgt.s	loc_65E4
@@ -29903,9 +29908,9 @@ Obj7D_Delete:
 		jmp	DeleteObject
 ; ===========================================================================
 Obj7D_Points:	dc.w 0			; Bonus	points array
-		dc.w 1000
-		dc.w 100
-		dc.w 1
+		dc.w 1000		; earn 1000*10 points for revealing 10000 object
+		dc.w 100		; earn 100*10 points for revealing 1000 object
+		dc.w 10			; earn 10*10 points for revealing 100 object
 ; ===========================================================================
 
 Obj7D_DelayDel:				; XREF: Obj7D_Index
