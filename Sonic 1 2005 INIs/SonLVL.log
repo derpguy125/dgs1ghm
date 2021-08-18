@@ -1,41 +1,49 @@
 Operating system: Microsoft Windows NT 6.2.9200.0
-Opening INI file "C:\Users\derpg\Documents\GitHub\sonic-1-github-madness\Sonic 1 2005 INIs\objSLZ.ini"...
-Game type is S2.
-Loading 18...
-System.AggregateException: One or more errors occurred. ---> System.FormatException: Level must contain at least one Tiles file!
-   at SonicRetro.SonLVL.API.LevelData.LoadLevelTiles() in D:\Programs\SonLVL\SonLVLAPI\LevelData.cs:line 461
-   at System.Threading.Tasks.Task.InnerInvoke()
-   at System.Threading.Tasks.Task.Execute()
-   --- End of inner exception stack trace ---
-   at System.Threading.Tasks.Task.WaitAll(Task[] tasks, Int32 millisecondsTimeout, CancellationToken cancellationToken)
-   at System.Threading.Tasks.Task.WaitAll(Task[] tasks, Int32 millisecondsTimeout)
-   at System.Threading.Tasks.Parallel.Invoke(ParallelOptions parallelOptions, Action[] actions)
-   at System.Threading.Tasks.Parallel.Invoke(Action[] actions)
-   at SonicRetro.SonLVL.API.LevelData.LoadLevel(String levelname, Boolean loadGraphics) in D:\Programs\SonLVL\SonLVLAPI\LevelData.cs:line 179
-   at SonicRetro.SonLVL.GUI.MainForm.backgroundLevelLoader_DoWork(Object sender, DoWorkEventArgs e) in D:\Programs\SonLVL\SonLVL\MainForm.cs:line 574
----> (Inner Exception #0) System.FormatException: Level must contain at least one Tiles file!
-   at SonicRetro.SonLVL.API.LevelData.LoadLevelTiles() in D:\Programs\SonLVL\SonLVLAPI\LevelData.cs:line 461
-   at System.Threading.Tasks.Task.InnerInvoke()
-   at System.Threading.Tasks.Task.Execute()<---
-
----> (Inner Exception #1) System.FormatException: Level must contain at least one Blocks file!
-   at SonicRetro.SonLVL.API.LevelData.LoadLevelBlocks() in D:\Programs\SonLVL\SonLVLAPI\LevelData.cs:line 520
-   at System.Threading.Tasks.Task.InnerInvoke()
-   at System.Threading.Tasks.Task.Execute()<---
-
----> (Inner Exception #2) System.FormatException: Level must contain at least one Chunks file!
-   at SonicRetro.SonLVL.API.LevelData.LoadLevelChunks() in D:\Programs\SonLVL\SonLVLAPI\LevelData.cs:line 552
-   at System.Threading.Tasks.Task.InnerInvoke()
-   at System.Threading.Tasks.Task.Execute()<---
-
----> (Inner Exception #3) System.FormatException: Level must contain a Layout file!
-   at SonicRetro.SonLVL.API.LevelData.LoadLevelLayout(String levelname) in D:\Programs\SonLVL\SonLVLAPI\LevelData.cs:line 625
-   at SonicRetro.SonLVL.API.LevelData.<>c__DisplayClass70_0.<LoadLevel>b__0() in D:\Programs\SonLVL\SonLVLAPI\LevelData.cs:line 179
-   at System.Threading.Tasks.Task.InnerInvoke()
-   at System.Threading.Tasks.Task.Execute()<---
-
----> (Inner Exception #4) System.FormatException: Level must contain at least one Palette file!
-   at SonicRetro.SonLVL.API.LevelData.LoadLevelPalette() in D:\Programs\SonLVL\SonLVLAPI\LevelData.cs:line 677
-   at System.Threading.Tasks.Task.InnerInvoke()
-   at System.Threading.Tasks.Task.Execute()<---
-
+Opening INI file "C:\Users\bryce\Documents\GitHub\dgs1ghm\Sonic 1 2005 INIs\SonLVL.ini"...
+Game type is S1.
+Loading Marble Zone Act 1...
+Loading 16x16 blocks from file "../map16/mz.bin", using compression Enigma...
+Loading 8x8 tiles from file "../artnem/8x8mz.bin", using compression Nemesis...
+Loading 256x256 chunks from file "../map256/mz.bin", using compression Kosinski...
+Loading palette file "../pallet/sonic.bin"...
+Source: 0 Destination: 0 Length: 16
+Loading palette file "../pallet/mz.bin"...
+Source: 0 Destination: 16 Length: 48
+Loading FG layout from file "../levels/mz1.bin", using compression Uncompressed...
+Loading BG layout from file "../levels/mz1bg.bin", using compression Uncompressed...
+Loading FG layout from file "../levels/mz2.bin", using compression Uncompressed...
+Loading BG layout from file "../levels/mz2bg.bin", using compression Uncompressed...
+Loading FG layout from file "../levels/mz3.bin", using compression Uncompressed...
+Loading BG layout from file "../levels/mz3bg.bin", using compression Uncompressed...
+Loading object definition file "obj.ini".
+Loading object definition file "objMZ.ini".
+Loading ObjectDefinition type S1ObjectDefinitions.Common.Ring from "Common\Ring.cs"...
+Loading type from cached assembly "dllcache\S1ObjectDefinitions.Common.Ring.dll"...
+Loading ObjectDefinition type S1ObjectDefinitions.Common.InvisibleBlock from "Common\InvisibleBlock.cs"...
+Loading type from cached assembly "dllcache\S1ObjectDefinitions.Common.InvisibleBlock.dll"...
+Loading ObjectDefinition type S1ObjectDefinitions.GHZ.SwingingPlatform from "GHZ\SwingingPlatform.cs"...
+Loading type from cached assembly "dllcache\S1ObjectDefinitions.GHZ.SwingingPlatform.dll"...
+Loading ObjectDefinition type S1ObjectDefinitions.MZ.SidewaysStomper from "MZ\SidewaysStomper.cs"...
+Loading type from cached assembly "dllcache\S1ObjectDefinitions.MZ.SidewaysStomper.dll"...
+Loading objects from file "../objpos/mz1.bin", using compression Uncompressed...
+Loading start position "Level Start" from file "../misc/sloc_lev.bin"...
+Drawing block bitmaps...
+Drawing chunk bitmaps...
+Level loaded in 1.5917869 second(s).
+Load completed.
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at SonicRetro.SonLVL.GUI.MainForm.pasteToolStripMenuItem_Click(Object sender, EventArgs e) in D:\Programs\SonLVL\SonLVL\MainForm.cs:line 3300
+   at SonicRetro.SonLVL.GUI.MainForm.objectPanel_KeyDown(Object sender, KeyEventArgs e) in D:\Programs\SonLVL\SonLVL\MainForm.cs:line 2174
+   at System.Windows.Forms.KeyEventHandler.Invoke(Object sender, KeyEventArgs e)
+   at SonicRetro.SonLVL.ScrollingPanel.panel_KeyDown(Object sender, KeyEventArgs e) in D:\Programs\SonLVL\SonLVL\ScrollingPanel.cs:line 130
+   at System.Windows.Forms.Control.OnKeyDown(KeyEventArgs e)
+   at System.Windows.Forms.Control.ProcessKeyEventArgs(Message& m)
+   at System.Windows.Forms.Control.ProcessKeyMessage(Message& m)
+   at System.Windows.Forms.Control.WmKeyChar(Message& m)
+   at System.Windows.Forms.Control.WndProc(Message& m)
+   at System.Windows.Forms.ScrollableControl.WndProc(Message& m)
+   at System.Windows.Forms.ContainerControl.WndProc(Message& m)
+   at System.Windows.Forms.UserControl.WndProc(Message& m)
+   at System.Windows.Forms.Control.ControlNativeWindow.OnMessage(Message& m)
+   at System.Windows.Forms.Control.ControlNativeWindow.WndProc(Message& m)
+   at System.Windows.Forms.NativeWindow.Callback(IntPtr hWnd, Int32 msg, IntPtr wparam, IntPtr lparam)
