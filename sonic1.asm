@@ -11,7 +11,7 @@
 ; This file should be compiled with "as	-M"
 
 ; ===========================================================================
-
+ThokFlag			equ $FFFFF5C0
 Current_Character	equ	$FFFFFFF9
 
 align macro
@@ -1076,22 +1076,39 @@ loc_134A:
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
 
-SoundDriverLoad:			; XREF: GameClrRAM; TitleScreen
-		nop	
-		move.w	#$100,($A11100).l ; stop the Z80
-		move.w	#$100,($A11200).l ; reset the Z80
-		lea	(Kos_Z80).l,a0	; load sound driver
-		lea	($A00000).l,a1
-		bsr.w	KosDec		; decompress
-		move.w	#0,($A11200).l
-		nop	
-		nop	
-		nop	
-		nop	
-		move.w	#$100,($A11200).l ; reset the Z80
-		move.w	#0,($A11100).l	; start	the Z80
-		rts	
+SoundDriverLoad:            ; XREF: GameClrRAM; TitleScreen
+        nop
+        move.w    #$100,d0
+        move.w    d0,($A11100).l
+        move.w    d0,($A11200).l
+        lea    (MegaPCM).l,a0
+        lea    ($A00000).l,a1
+        move.w    #(MegaPCM_End-MegaPCM)-1,d1
+ 
+    @Load:    move.b    (a0)+,(a1)+
+        dbf    d1,@Load
+        moveq    #0,d1
+        move.w    d1,($A11200).l
+        nop
+        nop
+        nop
+        nop
+        move.w    d0,($A11200).l
+        move.w    d1,($A11100).l
+        rts
 ; End of function SoundDriverLoad
+
+; ---------------------------------------------------------------------------
+; Subroutine to    play a DAC sample
+; ---------------------------------------------------------------------------
+ 
+PlaySample:
+    move.w    #$100,($A11100).l    ; stop the Z80
+@0    btst    #0,($A11100).l
+    bne.s    @0
+    move.b    d0,$A01FFF
+    move.w    #0,($A11100).l
+    rts
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to	play a sound or	music track
@@ -6000,6 +6017,8 @@ Obj87_Animate:				; XREF: Obj87_Index
 		lea	(Ani_obj87).l,a1
 		jmp	AnimateSprite
 ; ===========================================================================
+
+
 
 Obj87_Leap:				; XREF: Obj87_Index
 		subq.w	#1,$30(a0)
@@ -23881,6 +23900,7 @@ Obj01_MdNormal:				; XREF: Obj01_Modes
 ; ===========================================================================
 
 Obj01_MdJump:				; XREF: Obj01_Modes
+		
 		bsr.w	Sonic_JumpHeight
 		bsr.w	Sonic_ChgJumpDir
 		bsr.w	Sonic_LevelBound
@@ -23893,6 +23913,7 @@ loc_12E5C:
 		bsr.w	Sonic_JumpAngle
 		bsr.w	Sonic_Floor
 		bsr.w   Sonic_AirRoll
+		bsr.w	Sonic_Thok
 		rts	
 ; ===========================================================================
 
@@ -23920,6 +23941,7 @@ loc_12EA6:
 		bsr.w	Sonic_JumpAngle
 		bsr.w	Sonic_Floor
 		bsr.w   Sonic_AirRoll
+		bsr.w	Sonic_Thok
 		rts	
 ; ---------------------------------------------------------------------------
 ; Subroutine to	make Sonic walk/run
@@ -24563,6 +24585,7 @@ Sonic_Jump:				; XREF: Obj01_MdNormal; Obj01_MdRoll
 		move.b	($FFFFF603).w,d0
 		andi.b	#$70,d0		; is A,	B or C pressed?
 		beq.w	locret_1348E	; if not, branch
+		
 		moveq	#0,d0
 		move.b	$26(a0),d0
 		addi.b	#$80,d0
@@ -24590,6 +24613,7 @@ loc_1341C:
 		addq.l	#4,sp
 		move.b	#1,$3C(a0)
 		clr.b	$38(a0)
+		move.w	#$00, ($FFFFF5C0).w	; yeah?
 		move.w	#$A0,d0
 		jsr	(PlaySound_Special).l ;	play jumping sound
 		move.b	#$13,$16(a0)
@@ -24654,6 +24678,62 @@ locret_134D2:
 ; End of function Sonic_JumpHeight
 
 ; ---------------------------------------------------------------------------
+; Subroutine to make Snorc able to Thok
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+
+
+Sonic_Thok:
+		cmpi.b  #$04, ($FFFFFFF9).w ; are we snorc
+		bne.b	Thok_RTSStfu		; if not, go back to regular jump code
+		
+        move.b    ($FFFFF603).w,d0 ; Move $FFFFF603 to d0
+        andi.b    #$70,d0 ; Has A/B/C been pressed?
+        bne.w    Thok_Checks ; If so, branch.
+        rts ; Return.
+ 
+Thok_Checks:
+		
+		cmpi.b  #2,$1C(a0) ; Is animation 2 active?
+        beq.s   Thok_Set ; If not, branch.
+		btst    #0,$3C(a0) ; Is bit 1 in the status bitfield enabled?
+        bne.s   Thok_Set ; If so, branch.
+		
+        rts ; Return
+		
+Thok_Set:
+		cmpi.w	#$00, ($FFFFF5C0).w	; yeah?
+		bne.s 	Thok_RTSStfu ; yeah...?
+		
+		move.w	#$01, ($FFFFF5C0).w	
+
+		btst 	#0,$22(a0) ; is sonic facing left
+		bne.b	Thok_MovLeft
+		jmp		Thok_MovRight
+
+Thok_SFX:
+		moveq    #$FFFFFF84,d0
+        jsr    PlaySample
+		
+		jmp Thok_RTSStfu	; return
+	
+Thok_MovLeft:		   ; XREF: Sonic_Move
+		move.w	#$C00,$10(a0)
+		neg.w	$10(a0)
+		jmp Thok_SFX
+		
+Thok_MovRight:		   ; XREF: Sonic_Move
+		move.w	#$C00,$10(a0)
+		jmp Thok_SFX
+		
+Thok_ResetFlag:
+		move.w	#$0, ($FFFFF5C0).w	
+		rts ; return
+Thok_RTSStfu:
+		rts ; return
+
+; ---------------------------------------------------------------------------
 ; Subroutine to make DG Roll after jumping lmao
 ; ---------------------------------------------------------------------------
 
@@ -24669,7 +24749,7 @@ Sonic_AirRoll:
         rts ; Return.
  
 AirRoll_Checks:
-        cmpi.b    #2,$1C(a0) ; Is animation 2 active?
+        cmpi.b  #2,$1C(a0) ; Is animation 2 active?
         bne.s   AirRoll_Set ; If not, branch.
         btst    #1,$22(a0) ; Is bit 1 in the status bitfield enabled?
         bne.s   AirRoll_Set ; If so, branch.
@@ -24679,8 +24759,8 @@ AirRoll_Set:
 		cmpi.b    #2,$1C(a0) ; Is animation 2 active?
 		beq.b	AirRoll_RTSStfu		; if so, gtfo we're already spinning
 		
-		move.b    #2,$1C(a0) ; Set Sonic's animation to the rolling animation.
-		move.w	#$B8,d0
+		move.b  #2,$1C(a0) ; Set Sonic's animation to the rolling animation.
+		move.w	#$B6,d0
 		jsr	(PlaySound_Special).l
 		
 AirRoll_RTSStfu:
@@ -24694,6 +24774,8 @@ AirRoll_RTSStfu:
 
 
 Sonic_SpinDash:
+		cmpi.b  #$08, ($FFFFFFF9).w ; are we dg
+		beq.b	locret_1AC8C	; if yes, return because dg is a dumb fuck who does not know how to spindash
 		tst.b	$39(a0)
 		bne.s	loc_1AC8E
 		cmpi.b	#8,$1C(a0)
@@ -38417,6 +38499,10 @@ Nem_EndEm:	incbin	artnem\endemera.bin	; ending sequence chaos emeralds
 		even
 Nem_EndSonic:	incbin	artnem\endsonic.bin	; ending sequence Sonic
 		even
+Nem_EndSnorc:	incbin	artnem\endsnorc.bin	; ending sequence Snorc
+		even
+Nem_EndDG:		incbin	artnem\enddg.bin	; ending sequence dg
+		even
 Nem_TryAgain:	incbin	artnem\tryagain.bin	; ending "try again" screen
 		even
 Nem_EndEggman:	incbin	artnem\xxxend.bin	; unused boss sequence on ending
@@ -38776,18 +38862,6 @@ loc_71B5A:
 		btst	#0,($A11100).l
 		bne.s	loc_71B5A
 
-		btst	#7,($A01FFD).l
-		beq.s	loc_71B82
-		move.w	#0,($A11100).l	; start	the Z80
-		nop	
-		nop	
-		nop	
-		nop	
-		nop	
-		bra.s	sub_71B4C
-; ===========================================================================
-
-loc_71B82:
 		lea	($FFF000).l,a6
 		clr.b	$E(a6)
 		tst.b	3(a6)		; is music paused?
@@ -38881,6 +38955,10 @@ loc_71C38:
 		jsr	sub_72850(pc)
 
 loc_71C44:
+        move.b    ($A04000).l,d2
+        btst    #7,d2
+        bne.s    loc_71C44
+        move.b    #$2A,($A04000).l
 		move.w	#0,($A11100).l	; start	the Z80
 		rts	
 ; End of function sub_71B4C
@@ -38926,8 +39004,6 @@ loc_71C88:
 		move.b	$10(a5),d0
 		cmpi.b	#$80,d0
 		beq.s	locret_71CAA
-		btst	#3,d0
-		bne.s	loc_71CAC
 		move.b	d0,($A01FFF).l
 
 locret_71CAA:
@@ -39193,6 +39269,7 @@ loc_71E7C:
 		dbf	d3,loc_71E7C
 
 		jsr	sub_729B6(pc)
+		move.b    #$7F,($A01FFF).l; pause DAC
 		bra.w	loc_71C44
 ; ===========================================================================
 
@@ -39228,17 +39305,20 @@ loc_71EC4:
 		jsr	sub_72722(pc)
 
 loc_71EDC:
-		adda.w	d3,a5
-		dbf	d4,loc_71EC4
-
-		lea	$340(a6),a5
-		btst	#7,(a5)
-		beq.s	loc_71EFE
-		btst	#2,(a5)
-		bne.s	loc_71EFE
-		move.b	#-$4C,d0
-		move.b	$A(a5),d1
-		jsr	sub_72722(pc)
+        adda.w    d3,a5
+        dbf    d4,loc_71EC4
+ 
+        lea    $340(a6),a5
+        btst    #7,(a5)
+        beq.s    @UnpauseDAC
+        btst    #2,(a5)
+        bne.s    @UnpauseDAC
+        move.b    #-$4C,d0
+        move.b    $A(a5),d1
+        jsr    sub_72722(pc)
+ 
+@UnpauseDAC:
+        move.b    #0,($A01FFF).l    ; unpause DAC
 
 loc_71EFE:
 		bra.w	loc_71C44
@@ -40019,6 +40099,7 @@ loc_725B6:
 
 		move.b	#$80,9(a6)	; set music to $80 (silence)
 		jsr	sub_7256A(pc)
+		move.b    #$80,($A01FFF).l ; stop DAC playback
 		bra.w	sub_729B6
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
@@ -41015,12 +41096,7 @@ loc_72E64:				; XREF: loc_72A64
 		move.b	#$F,d1
 		bra.w	sub_7272E
 ; ===========================================================================
-Kos_Z80:	incbin	sound\z80_1.bin
-		dc.w ((SegaPCM&$FF)<<8)+((SegaPCM&$FF00)>>8)
-		dc.b $21
-		dc.w (((EndOfRom-SegaPCM)&$FF)<<8)+(((EndOfRom-SegaPCM)&$FF00)>>8)
-		incbin	sound\z80_2.bin
-		even
+   include    'MegaPCM.asm'
 Music81:	incbin	sound\music81.bin
 		even
 Music82:	incbin	sound\music82.bin
@@ -41078,7 +41154,7 @@ SoundIndex:	dc.l SoundA0, SoundA1, SoundA2
 		dc.l SoundC7, SoundC8, SoundC9
 		dc.l SoundCA, SoundCB, SoundCC
 		dc.l SoundCD, SoundCE, SoundCF
-		dc.l SoundD1
+		dc.l SoundD1, SoundD2
 SoundD0Index:	dc.l SoundD0
 SoundA0:	incbin	sound\soundA0.bin
 		even
@@ -41179,6 +41255,8 @@ SoundCF:	incbin	sound\soundCF.bin
 SoundD0:	incbin	sound\soundD0.bin
 		even
 SoundD1:	incbin	sound\soundD1.bin
+		even
+SoundD2:	incbin	sound\soundD2.bin
 		even
 SegaPCM:	incbin	sound\segapcm.bin
 SegaPCM_End:		even

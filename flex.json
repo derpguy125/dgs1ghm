@@ -29,19 +29,19 @@
             }
         },
         {
-            "name": "",
+            "name": "Ending Sonic",
             "palettes": [
                 {
-                    "path": "pallet\\ghz.bin",
-                    "length": 3
+                    "path": "pallet\\dg.bin",
+                    "length": 1
                 }
             ],
             "art": {
-                "path": "",
-                "compression": "Uncompressed"
+                "path": "artnem\\enddg.bin",
+                "compression": "Nemesis"
             },
             "mappings": {
-                "path": "",
+                "path": "_maps\\obj87b.asm",
                 "format": "Sonic 1",
                 "customDefinition": "",
                 "label": ""
