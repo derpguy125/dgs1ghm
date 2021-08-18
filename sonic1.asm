@@ -6149,7 +6149,10 @@ Obj89_Move:				; XREF: Obj89_Index
 		cmpi.w	#$C0,8(a0)	; has object reached $C0?
 		beq.s	Obj89_Delay	; if yes, branch
 		addi.w	#$10,8(a0)	; move object to the right
-		bra.w	DisplaySprite
+		bra.w	GotoDS
+		
+GotoDS:
+		jmp DisplaySprite
 ; ===========================================================================
 
 Obj89_Delay:				; XREF: Obj89_Move
@@ -15830,18 +15833,21 @@ byte_CADC:	dc.b $A			; SCRAP BRAIN
 		dc.b $F8, 1, 0,	$20, $3C
 		dc.b $F8, 5, 0,	$2E, $44
 		dc.b 0
-byte_CB10:	dc.b 4			; ZONE
-		dc.b $F8, 5, 0,	$4E, $E0
-		dc.b $F8, 5, 0,	$32, $F0
-		dc.b $F8, 5, 0,	$2E, 0
-		dc.b $F8, 5, 0,	$10, $10
-		dc.b 0
+byte_CB10:	dc.b 8			; ZONE
+		dc.b $F8, 5, 0, $4E, $B0	; Z
+		dc.b $F8, 5, 0, $32, $C0	; O
+		dc.b $F8, 5, 0, $2E, $D0	; N
+		dc.b $F8, 5, 0, $10, $E0	; E
+		dc.b $F8, 0, 0, $56, $F0	; Space
+		dc.b $F8, 5, 0, 0, $0		; A
+		dc.b $F8, 5, 0, 8, $10		; C
+		dc.b $F8, 5, 0, $42, $20	; T
 byte_CB26:	dc.b 1			; ACT 1
-		dc.b $F4, 2, 0,	$57, $C
+		dc.b $EA, 2, 0,	$57, $1B
 byte_CB31:	dc.b 1			; ACT 2
-		dc.b $F4, 6, 0,	$5A, 8
+		dc.b $EA, 6, 0,	$5A, $20
 byte_CB3C:	dc.b 1			; ACT 3
-		dc.b $F4, 6, 0,	$60, 8
+		dc.b $EA, 6, 0,	$60, $20
 byte_CB47:	dc.b $D			; Oval
 		dc.b $E4, $C, 0, $70, $F4
 		dc.b $E4, 2, 0,	$74, $14
@@ -15882,22 +15888,26 @@ Map_obj3A:	dc.w byte_CBEA-Map_obj3A
 		dc.w byte_CB26-Map_obj3A
 		dc.w byte_CB31-Map_obj3A
 		dc.w byte_CB3C-Map_obj3A
-byte_CBEA:	dc.b 8			; SONIC HAS
-		dc.b $F8, 5, 0,	$3E, $B8
-		dc.b $F8, 5, 0,	$32, $C8
-		dc.b $F8, 5, 0,	$2E, $D8
-		dc.b $F8, 1, 0,	$20, $E8
-		dc.b $F8, 5, 0,	8, $F0
-		dc.b $F8, 5, 0,	$1C, $10
-		dc.b $F8, 5, 0,	0, $20
-		dc.b $F8, 5, 0,	$3E, $30
-byte_CC13:	dc.b 6			; PASSED
-		dc.b $F8, 5, 0,	$36, $D0
-		dc.b $F8, 5, 0,	0, $E0
-		dc.b $F8, 5, 0,	$3E, $F0
-		dc.b $F8, 5, 0,	$3E, 0
-		dc.b $F8, 5, 0,	$10, $10
-		dc.b $F8, 5, 0,	$C, $20
+byte_CBEA:	dc.b 8	;  SONIC HAS | YOU HAVE
+		dc.b $F8, 5, 0, $4A, $C0	; Y
+		dc.b $F8, 5, 0, $32, $D0	; O
+		dc.b $F8, 5, 0, $46, $E0	; U
+		dc.b $F8, 0, 0, $56, $F0	; Space
+		dc.b $F8, 5, 0, $1C, $0	; H
+		dc.b $F8, 5, 0, 0, $10		; A
+		dc.b $F8, 5, 0, $52, $20	; V
+		dc.b $F8, 5, 0, $10, $30	; E
+byte_CC13:	dc.b $A	;  PASSED | PASSED ACT
+		dc.b $F8, 5, 0, $36, $A7	; P
+		dc.b $F8, 5, 0, 0, $B7		; A
+		dc.b $F8, 5, 0, $3E, $C7	; S
+		dc.b $F8, 5, 0, $3E, $D7	; S
+		dc.b $F8, 5, 0, $10, $E7	; E
+		dc.b $F8, 5, 0, $0C, $F7	; D
+		dc.b $F8, 0, 0, $56, $7		; Space
+		dc.b $F8, 5, 0, 0, $17		; A
+		dc.b $F8, 5, 0, 8, $27		; C
+		dc.b $F8, 5, 0, $42, $37	; T
 byte_CC32:	dc.b 6			; SCORE
 		dc.b $F8, $D, 1, $4A, $B0
 		dc.b $F8, 1, 1,	$62, $D0
@@ -24627,8 +24637,18 @@ loc_1341C:
 		move.b	#1,$3C(a0)
 		clr.b	$38(a0)
 		move.w	#$00, ($FFFFF5C0).w	; yeah?
+		cmpi.b  #$08, ($FFFFFFF9).w ; are we dg
+		beq.b	@dgjumpsnd		; if so, jump as dg
+	@regjumpsnd:
 		move.w	#$A0,d0
 		jsr	(PlaySound_Special).l ;	play jumping sound
+		jmp @continueonwards
+	@dgjumpsnd:
+		moveq   #$FFFFFF85,d0
+		jsr    	PlaySample ; play dg's jump sound
+		
+
+	@continueonwards:
 		move.b	#$13,$16(a0)
 		move.b	#9,$17(a0)
 		btst	#2,$22(a0)
@@ -24737,8 +24757,8 @@ AirRoll_Set:
 		beq.b	AirRoll_RTSStfu		; if so, gtfo we're already spinning
 		
 		move.b  #2,$1C(a0) ; Set Sonic's animation to the rolling animation.
-		move.w	#$B6,d0
-		jsr	(PlaySound_Special).l
+		move.w	#$BE,d0
+		jsr		(PlaySound_Special).l 	; Play spindash charge sound
 		
 AirRoll_RTSStfu:
 		rts ; return
