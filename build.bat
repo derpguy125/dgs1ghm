@@ -10,10 +10,9 @@ REM derecmp.exe ec map16_u map16
 REM derecmp.exe kc map256_u map256
 REM derecmp.exe ec sslay_u sslayout
 
-IF EXIST s1built.bin move /Y s1built.bin s1built.prev.bin >NUL
-REM ::: change name of previous build
-
 rem snasm68k.exe -emax 0 -p -o ae- s1comb.asm, s1built.bin
-asm68k /o op+ /o os+ /o ow+ /o oz+ /o oaq+ /o osq+ /o omq+ /p /o ae- sonic1.asm, s1built.bin >errors.txt, , sonic.lst
+asm68k /o op+ /o os+ /o ow+ /o oz+ /o oaq+ /o osq+ /o omq+ /p /o ae- sonic1.asm, s1built.bin
 rompad.exe s1built.bin 255 0
 fixheadr.exe s1built.bin
+
+pause
