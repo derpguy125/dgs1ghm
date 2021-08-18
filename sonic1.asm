@@ -3397,7 +3397,10 @@ Title_ClrScroll:
 Title_ClrVram:
 		move.l	d0,(a6)
 		dbf	d1,Title_ClrVram ; fill	VRAM with 0
-
+		
+		move.b  #$89,d0
+		jsr PlaySound
+		
 		bsr.w	LevSelTextLoad
 
 ; ---------------------------------------------------------------------------
@@ -3411,22 +3414,26 @@ LevelSelect:
 		bsr.w	RunPLC_RAM
 		tst.l	($FFFFF680).w
 		bne.s	LevelSelect
-		andi.b	#$F0,($FFFFF605).w ; is	A, B, C, or Start pressed?
-		beq.s	LevelSelect	; if not, branch
 		move.w	($FFFFFF82).w,d0
 		cmpi.w	#$14,d0		; have you selected item $14 (sound test)?
-		bne.s	LevSel_Level_SS	; if not, go to	Level/SS subroutine
+		bne.s	LevSelLevCheckStart; if not, go to	Level/SS subroutine
+		cmpi.b	#$80,($FFFFF605).w ; is	Start pressed?
+		beq.s	LevSelStartPress	; if true, branch
+		cmpi.b	#$20,($FFFFF605).w ; is	B pressed?
+		beq.s	LevSelBCPress	; if not, branch
+		cmpi.b	#$10,($FFFFF605).w ; is	C pressed?
+		beq.s	LevSelBCPress	; if not, branch
+		bra.s	LevelSelect
+; ===========================================================================
+LevSelLevCheckStart:				; XREF: LevelSelect
+		andi.b	#$80,($FFFFF605).w ; is	Start pressed?
+		beq.s	LevelSelect	; if not, branch
+		bra.s	LevSel_Level_SS
+
+LevSelBCPress:				; XREF: LevelSelect
 		move.w	($FFFFFF84).w,d0
 		addi.w	#$80,d0
-		tst.b	($FFFFFFE3).w	; is Japanese Credits cheat on?
-		beq.s	LevSel_NoCheat	; if not, branch
-		cmpi.w	#$9F,d0		; is sound $9F being played?
-		beq.s	LevSel_Ending	; if yes, branch
-		cmpi.w	#$9E,d0		; is sound $9E being played?
-		beq.s	LevSel_Credits	; if yes, branch
-
-LevSel_NoCheat:
-		cmpi.w	#$94,d0		; is sound $80-$94 being played?
+		cmpi.w	#$A0,d0		; is sound $80-$9F being played?
 		bcs.s	LevSel_PlaySnd	; if yes, branch
 		cmpi.w	#$A0,d0		; is sound $95-$A0 being played?
 		bcs.s	LevelSelect	; if yes, branch
@@ -3434,6 +3441,10 @@ LevSel_NoCheat:
 LevSel_PlaySnd:
 		bsr.w	PlaySound_Special
 		bra.s	LevelSelect
+		
+LevSelStartPress:				; XREF: LevelSelect
+		move.b	#$00,$FFFFF600
+		jmp MainGameLoop ;go to sega screen
 ; ===========================================================================
 
 LevSel_Ending:				; XREF: LevelSelect
@@ -3610,14 +3621,24 @@ LevSel_SndTest:				; XREF: LevSelControls
 		cmpi.w	#$14,($FFFFFF82).w ; is	item $14 selected?
 		bne.s	LevSel_NoMove	; if not, branch
 		move.b	($FFFFF605).w,d1
-		andi.b	#$C,d1		; is left/right	pressed?
+		andi.b	#$4C,d1		; is left/right/A pressed?
 		beq.s	LevSel_NoMove	; if not, branch
 		move.w	($FFFFFF84).w,d0
+		btst	#6,d1		; is A pressed?
+		bne.s	LevSel_A	; if not, branch
 		btst	#2,d1		; is left pressed?
 		beq.s	LevSel_Right	; if not, branch
 		subq.w	#1,d0		; subtract 1 from sound	test
 		bcc.s	LevSel_Right
 		moveq	#$4F,d0		; if sound test	moves below 0, set to $4F
+		
+LevSel_A:
+		btst	#6,d1		; is A button pressed?
+		beq.s	LevSel_Right	; if not, branch
+		add.w	#16,d0		; add $10 to sound test
+		cmpi.w	#$50,d0	        ; addition by Shadow05 to stop the sound test from going above $D0
+		bcs.s	LevSel_Refresh2
+		moveq	#0,d0		; if sound test	moves above $4F, set to	0
 
 LevSel_Right:
 		btst	#3,d1		; is right pressed?
@@ -18417,7 +18438,7 @@ Obj0D:					; XREF: Obj_Index
 Obj0D_Index:	dc.w Obj0D_Main-Obj0D_Index
 		dc.w Obj0D_Touch-Obj0D_Index
 		dc.w Obj0D_Spin-Obj0D_Index
-		dc.w Obj0D_SonicRun-Obj0D_Index
+		dc.w GotThroughAct-Obj0D_Index
 		dc.w locret_ED1A-Obj0D_Index
 ; ===========================================================================
 
@@ -18435,6 +18456,7 @@ Obj0D_Touch:				; XREF: Obj0D_Index
 		bcs.s	locret_EBBA
 		cmpi.w	#$20,d0		; is Sonic within $20 pixels of	the signpost?
 		bcc.s	locret_EBBA	; if not, branch
+		move.b  #1,($FFFFF7AA).w ; Lock the screen
 		move.w	#$CF,d0
 		jsr	(PlaySound).l	; play signpost	sound
 		clr.b	($FFFFFE1E).w	; stop time counter
@@ -18494,25 +18516,6 @@ Obj0D_SparkPos:	dc.b -$18,-$10		; x-position, y-position
 		dc.b  $18, $10
 ; ===========================================================================
 
-Obj0D_SonicRun:				; XREF: Obj0D_Index
-		tst.w	($FFFFFE08).w	; is debug mode	on?
-		bne.w	locret_ECEE	; if yes, branch
-		btst	#1,($FFFFD022).w
-		bne.s	loc_EC70
-		move.b	#1,($FFFFF7CC).w ; lock	controls
-		move.w	#$800,($FFFFF602).w ; make Sonic run to	the right
-
-loc_EC70:
-		tst.b	($FFFFD000).w
-		beq.s	loc_EC86
-		move.w	($FFFFD008).w,d0
-		move.w	($FFFFF72A).w,d1
-		addi.w	#$128,d1
-		cmp.w	d1,d0
-		bcs.s	locret_ECEE
-
-loc_EC86:
-		addq.b	#2,$24(a0)
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to	set up bonuses at the end of an	act

@@ -4,12 +4,7 @@
     "objects": [
         {
             "name": "",
-            "palettes": [
-                {
-                    "path": "pallet\\sonic.bin",
-                    "length": 1
-                }
-            ],
+            "palettes": [],
             "art": {
                 "path": "artnem\\ttlcards.bin",
                 "compression": "Nemesis"
@@ -58,8 +53,34 @@
             "name": "",
             "palettes": [
                 {
-                    "path": "pallet\\ghz.bin",
-                    "length": 3
+                    "path": "..\\..\\S2BDisasm\\palettes\\LevelSelectMenu.bin",
+                    "length": 4
+                }
+            ],
+            "art": {
+                "path": "",
+                "compression": "Uncompressed"
+            },
+            "mappings": {
+                "path": "",
+                "format": "Sonic 1",
+                "customDefinition": "",
+                "label": ""
+            },
+            "dplcs": {
+                "enabled": false,
+                "path": "",
+                "format": "Sonic 1",
+                "customDefinition": "",
+                "label": ""
+            }
+        },
+        {
+            "name": "",
+            "palettes": [
+                {
+                    "path": "pallet\\levelsel.bin",
+                    "length": 4
                 }
             ],
             "art": {
