@@ -37,8 +37,8 @@ Vectors:	dc.l $FFFE00, EntryPoint, BusError, AddressError
 		dc.l ErrorTrap,	ErrorTrap, ErrorTrap, ErrorTrap
 Console:	dc.b 'SEGA MEGA DRIVE ' ; Hardware system ID
 Date:		dc.b '(C)SEGA 1991.APR' ; Release date
-Title_Local:	dc.b 'SONIC THE HEDGEHOG GITHUB CALMNESS              ' ; Domestic name
-Title_Int:	dc.b 'SONIC THE HEDGEHOG GITHUB CALMNESS              ' ; International name
+Title_Local:	dc.b 'SONIC THE               HEDGEHOG                ' ; Domestic name
+Title_Int:	dc.b 'SONIC THE               HEDGEHOG                ' ; International name
 Serial:		dc.b 'GM 00001009-00'   ; Serial/version number
 Checksum:	dc.w 0
 		dc.b 'J               ' ; I/O support
@@ -15738,19 +15738,16 @@ Map_obj34:	dc.w byte_C9FE-Map_obj34
 		dc.w byte_CB3C-Map_obj34
 		dc.w byte_CB47-Map_obj34
 		dc.w byte_CB8A-Map_obj34
-byte_C9FE:	dc.b $C	;  GREEN HILL | VIRTUAL HILL
-		dc.b $F8, 5, 0, $52, $9C	; K
-		dc.b $F8, 1, 0, $20, $AC	; I
-		dc.b $F8, 5, 0, $3A, $B4	; R
-		dc.b $F8, 5, 0, $42, $C4	; T
-		dc.b $F8, 5, 0, $46, $D4	; U
-		dc.b $F8, 5, 0, 0, $E4		; A
-		dc.b $F8, 5, 0, $26, $F4	; L
-		dc.b $F8, 0, 0, $56, $4	; Space
-		dc.b $F8, 5, 0, $1C, $14	; H
-		dc.b $F8, 1, 0, $20, $24	; I
-		dc.b $F8, 5, 0, $26, $2C	; L
-		dc.b $F8, 5, 0, $26, $3C	; L
+byte_C9FE:	dc.b 9 			; GREEN HILL
+		dc.b $F8, 5, 0,	$18, $B4
+		dc.b $F8, 5, 0,	$3A, $C4
+		dc.b $F8, 5, 0,	$10, $D4
+		dc.b $F8, 5, 0,	$10, $E4
+		dc.b $F8, 5, 0,	$2E, $F4
+		dc.b $F8, 5, 0,	$1C, $14
+		dc.b $F8, 1, 0,	$20, $24
+		dc.b $F8, 5, 0,	$26, $2C
+		dc.b $F8, 5, 0,	$26, $3C
 byte_CA2C:	dc.b 9			; LABYRINTH
 		dc.b $F8, 5, 0,	$26, $BC
 		dc.b $F8, 5, 0,	0, $CC
@@ -15817,11 +15814,14 @@ byte_CB10:	dc.b 4			; ZONE
 		dc.b $F8, 5, 0,	$2E, 0
 		dc.b $F8, 5, 0,	$10, $10
 		dc.b 0
-byte_CB26:	dc.b 1			; ACT 1
+byte_CB26:	dc.b 2			; ACT 1
+		dc.b 4,	$C, 0, $53, $EC
 		dc.b $F4, 2, 0,	$57, $C
-byte_CB31:	dc.b 1			; ACT 2
+byte_CB31:	dc.b 2			; ACT 2
+		dc.b 4,	$C, 0, $53, $EC
 		dc.b $F4, 6, 0,	$5A, 8
-byte_CB3C:	dc.b 1			; ACT 3
+byte_CB3C:	dc.b 2			; ACT 3
+		dc.b 4,	$C, 0, $53, $EC
 		dc.b $F4, 6, 0,	$60, 8
 byte_CB47:	dc.b $D			; Oval
 		dc.b $E4, $C, 0, $70, $F4
@@ -23892,7 +23892,6 @@ Obj01_MdJump:				; XREF: Obj01_Modes
 loc_12E5C:
 		bsr.w	Sonic_JumpAngle
 		bsr.w	Sonic_Floor
-		bsr.w   Sonic_AirRoll
 		rts	
 ; ===========================================================================
 
@@ -23919,7 +23918,6 @@ Obj01_MdJump2:				; XREF: Obj01_Modes
 loc_12EA6:
 		bsr.w	Sonic_JumpAngle
 		bsr.w	Sonic_Floor
-		bsr.w   Sonic_AirRoll
 		rts	
 ; ---------------------------------------------------------------------------
 ; Subroutine to	make Sonic walk/run
@@ -24597,16 +24595,7 @@ loc_1341C:
 		btst	#2,$22(a0)
 		bne.s	loc_13490
 		move.b	#$E,$16(a0)
-		cmpi.b  #$08, ($FFFFFFF9).w ; are we dg
-		beq.b	@dgjump		; if so, jump as dg
-		jmp		@otherwise
-	@dgjump:
-		move.b	#$10,$1C(a0)	; use "jumping"	animation
-		bset	#2,$22(a0)
-		addq.w	#5,$C(a0)
-		jmp		locret_1348E
-		
-	@otherwise:
+		move.b	#7,$17(a0)
 		move.b	#2,$1C(a0)	; use "jumping"	animation
 		bset	#2,$22(a0)
 		addq.w	#5,$C(a0)
@@ -24652,39 +24641,6 @@ loc_134C4:
 locret_134D2:
 		rts	
 ; End of function Sonic_JumpHeight
-
-; ---------------------------------------------------------------------------
-; Subroutine to make DG Roll after jumping lmao
-; ---------------------------------------------------------------------------
-
-; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
-
-
-Sonic_AirRoll:
-		cmpi.b  #$08, ($FFFFFFF9).w ; are we dg
-		bne.b	AirRoll_RTSStfu		; if not, go back to regular jump code
-        move.b    ($FFFFF603).w,d0 ; Move $FFFFF603 to d0
-        andi.b    #$70,d0 ; Has A/B/C been pressed?
-        bne.w    AirRoll_Checks ; If so, branch.
-        rts ; Return.
- 
-AirRoll_Checks:
-        cmpi.b    #2,$1C(a0) ; Is animation 2 active?
-        bne.s   AirRoll_Set ; If not, branch.
-        btst    #1,$22(a0) ; Is bit 1 in the status bitfield enabled?
-        bne.s   AirRoll_Set ; If so, branch.
-        rts ; Return
-		
-AirRoll_Set:
-		cmpi.b    #2,$1C(a0) ; Is animation 2 active?
-		beq.b	AirRoll_RTSStfu		; if so, gtfo we're already spinning
-		
-		move.b    #2,$1C(a0) ; Set Sonic's animation to the rolling animation.
-		move.w	#$B8,d0
-		jsr	(PlaySound_Special).l
-		
-AirRoll_RTSStfu:
-		rts ; return
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to make Sonic perform a spindash
@@ -39305,10 +39261,8 @@ Sound_ChkValue:				; XREF: sub_71B4C
 		bls.w	Sound_A0toCF	; sound	$A0-$CF
 		cmpi.b	#$D0,d7
 		bcs.w	locret_71F8C
-		cmpi.b	#$D1,d7
+		cmpi.b	#$E0,d7
 		bcs.w	Sound_D0toDF	; sound	$D0-$DF
-		cmpi.b	#$DF,d7
-		bcs.w	Sound_D1toDF	; sound	$D0-$DF
 		cmpi.b	#$E4,d7
 		bls.s	Sound_E0toE4	; sound	$E0-$E4
 
@@ -39564,17 +39518,6 @@ byte_721C2:	dc.b $80, $A0, $C0, 0
 ; Play normal sound effect
 ; ---------------------------------------------------------------------------
 
-Sound_D1toDF:
-		tst.b	$27(a6)
-		bne.w	loc_722C6
-		tst.b	4(a6)
-		bne.w	loc_722C6
-		tst.b	$24(a6)
-		bne.w	loc_722C6
-		movea.l	(Go_SoundIndex).l,a0
-		sub.b	#$A1,d7
-		bra	SoundEffects_Common
-
 Sound_A0toCF:				; XREF: Sound_ChkValue
 		tst.b	$27(a6)
 		bne.w	loc_722C6
@@ -39601,7 +39544,6 @@ Sound_notB5:
 Sound_notA7:
 		movea.l	(Go_SoundIndex).l,a0
 		subi.b	#$A0,d7
-SoundEffects_Common:		
 		lsl.w	#2,d7
 		movea.l	(a0,d7.w),a3
 		movea.l	a3,a1
@@ -41078,7 +41020,6 @@ SoundIndex:	dc.l SoundA0, SoundA1, SoundA2
 		dc.l SoundC7, SoundC8, SoundC9
 		dc.l SoundCA, SoundCB, SoundCC
 		dc.l SoundCD, SoundCE, SoundCF
-		dc.l SoundD1
 SoundD0Index:	dc.l SoundD0
 SoundA0:	incbin	sound\soundA0.bin
 		even
@@ -41177,8 +41118,6 @@ SoundCE:	incbin	sound\soundCE.bin
 SoundCF:	incbin	sound\soundCF.bin
 		even
 SoundD0:	incbin	sound\soundD0.bin
-		even
-SoundD1:	incbin	sound\soundD1.bin
 		even
 SegaPCM:	incbin	sound\segapcm.bin
 SegaPCM_End:		even
