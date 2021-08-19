@@ -1,13 +1,15 @@
 {
-    "description": "Flex 2 Project File",
+    "Flex": 2,
     "name": "testy",
+    "node": "44921b37-552f-45b7-8dd8-c8f8280bd9fb",
     "objects": [
         {
             "name": "",
             "palettes": [],
             "art": {
                 "path": "artnem\\ttlcards.bin",
-                "compression": "Nemesis"
+                "compression": "Nemesis",
+                "offset": 0
             },
             "mappings": {
                 "path": "",
@@ -21,7 +23,8 @@
                 "format": "Sonic 1",
                 "customDefinition": "",
                 "label": ""
-            }
+            },
+            "uuid": "d244921b-3755-4f65-b7cd-d8c8f8280bd9"
         },
         {
             "name": "Ending Sonic",
@@ -33,7 +36,8 @@
             ],
             "art": {
                 "path": "artnem\\enddg.bin",
-                "compression": "Nemesis"
+                "compression": "Nemesis",
+                "offset": 0
             },
             "mappings": {
                 "path": "_maps\\obj87b.asm",
@@ -47,7 +51,8 @@
                 "format": "Sonic 1",
                 "customDefinition": "",
                 "label": ""
-            }
+            },
+            "uuid": "44921b37-552f-45b7-8dd8-c8f8280bd9fb"
         },
         {
             "name": "",
@@ -59,7 +64,8 @@
             ],
             "art": {
                 "path": "",
-                "compression": "Uncompressed"
+                "compression": "Uncompressed",
+                "offset": 0
             },
             "mappings": {
                 "path": "",
@@ -73,7 +79,8 @@
                 "format": "Sonic 1",
                 "customDefinition": "",
                 "label": ""
-            }
+            },
+            "uuid": "921b3755-2f65-47cd-98c8-f8280bd9fb6c"
         },
         {
             "name": "",
@@ -85,7 +92,8 @@
             ],
             "art": {
                 "path": "",
-                "compression": "Uncompressed"
+                "compression": "Uncompressed",
+                "offset": 0
             },
             "mappings": {
                 "path": "",
@@ -99,7 +107,8 @@
                 "format": "Sonic 1",
                 "customDefinition": "",
                 "label": ""
-            }
+            },
+            "uuid": "1b37552f-65b7-4dd8-88f8-280bd9fb6cfe"
         }
     ]
 }
