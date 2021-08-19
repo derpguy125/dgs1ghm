@@ -24804,8 +24804,11 @@ AirRoll_RTSStfu:
 Sonic_SpinDash:
 		cmpi.b  #$08, ($FFFFFFF9).w ; are we dg
 		beq.b	UseSCDDash	; if yes, use Sonic CD Spindash
+		cmpi.b  #$0C, ($FFFFFFF9).w ; are we dg
+		beq.b	DashRTS	; if yes, use Sonic CD Spindash
 		jmp UseS2Dash
-
+DashRTS:
+		rts
 UseSCDDash:
 		jmp UseSCDDash2
 
@@ -24816,6 +24819,8 @@ UseS2Dash:
 UseSCDDash2:
 		include "_new\SCDSpindash.asm"
 		rts
+
+
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to	slow Sonic walking up a	slope
