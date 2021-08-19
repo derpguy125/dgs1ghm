@@ -4911,7 +4911,7 @@ SS_ClrNemRam:
 		move.b	#9,($FFFFD000).w ; load	special	stage Sonic object
 		bsr.w	PalCycle_SS
 		clr.w	($FFFFF780).w	; set stage angle to "upright"
-		move.w	#$40,($FFFFF782).w ; set stage rotation	speed
+		move.w	#$0,($FFFFF782).w ; set stage rotation	speed
 		move.w	#$89,d0
 		bsr.w	PlaySound	; play special stage BG	music
 		move.w	#0,($FFFFF790).w
@@ -36427,6 +36427,7 @@ Obj09_GOAL:
 		bne.s	Obj09_UPblock
 		addq.b	#2,$24(a0)	; run routine "Obj09_ExitStage"
 		move.w	#$A8,d0		; change item
+      		move.b    #$19,$1C(a0)    ; use "shrinking" animation
 		jsr	(PlaySound_Special).l ;	play "GOAL" sound
 		rts	
 ; ===========================================================================
@@ -37144,7 +37145,7 @@ locret_1C6B6:
 
 
 HudUpdate:
-		tst.w	($FFFFFFFA).w	; is debug mode	on?
+        	tst.w    ($FFFFFFFA).w    ; is debug mode on?
 		bne.w	HudDebug	; if yes, branch
 		tst.b	($FFFFFE1F).w	; does the score need updating?
 		beq.s	Hud_ChkRings	; if not, branch
@@ -37740,6 +37741,9 @@ Debug_Index:	dc.w Debug_Main-Debug_Index
 ; ===========================================================================
 
 Debug_Main:				; XREF: Debug_Index
+        	clr.w   ($FFFFD000+$14).w ; Clear Inertia
+        	clr.w   ($FFFFD000+$12).w ; Clear X/Y Speed
+	        clr.w   ($FFFFD000+$10).w ; Clear X/Y Speed
 		addq.b	#2,($FFFFFE08).w
 		move.w	($FFFFF72C).w,($FFFFFEF0).w ; buffer level x-boundary
 		move.w	($FFFFF726).w,($FFFFFEF2).w ; buffer level y-boundary
