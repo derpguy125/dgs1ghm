@@ -2848,6 +2848,7 @@ Pal_LevelSel:	incbin	pallet\levelsel.bin
 Pal_Sonic:	incbin	pallet\sonic.bin
 Pal_Snorc:	incbin	pallet\snorc.bin
 Pal_DG:		incbin	pallet\dg.bin
+Pal_TTS:	incbin	pallet\tittyass.bin
 Pal_GHZ:	incbin	pallet\ghz.bin
 Pal_LZ:		incbin	pallet\lz.bin
 Pal_LZWater:	incbin	pallet\lz_uw.bin	; LZ underwater pallets
@@ -2867,9 +2868,9 @@ Pal_SpeResult:	incbin	pallet\ssresult.bin	; special stage results screen pallets
 Pal_SpeContinue:incbin	pallet\sscontin.bin	; special stage results screen continue pallet
 Pal_Ending:	incbin	pallet\ending.bin	; ending sequence pallets
 
-CharPalList:        dc.l Pal_Sonic, Pal_Snorc, Pal_DG
-CharPalListLZ:      dc.l Pal_LZSonWater, Pal_LZSnorcWater, Pal_LZSnorcWater
-CharPalListSBZ3:    dc.l Pal_SBZ3SonWat, Pal_SBZ3SnorcWater, Pal_SBZ3SnorcWater
+CharPalList:        dc.l Pal_Sonic, Pal_Snorc, Pal_DG, Pal_TTS
+CharPalListLZ:      dc.l Pal_LZSonWater, Pal_LZSnorcWater, Pal_LZSnorcWater, Pal_LZSnorcWater
+CharPalListSBZ3:    dc.l Pal_SBZ3SonWat, Pal_SBZ3SnorcWater, Pal_SBZ3SnorcWater, Pal_SBZ3SnorcWater
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -3361,7 +3362,7 @@ Title_CheckForB:
 		cmpi.b	#$10, ($FFFFF605).w	; has B been pressed?
 		bne.s	StartCheck		; if not, branch
 Title_SecondCharacter:
-		cmpi.b  #$08, ($FFFFFFF9).w ; are we dg
+		cmpi.b  #$0C, ($FFFFFFF9).w ; are we dg
 		beq.b	Title_BackTo0		; if so, switch to sos
 		addi.b	#$04, ($FFFFFFF9).w	; switch character
 		jmp 	Title_SFX	; jump to StartCheck so i dont get back into Title_Switcheroo FUCK.
@@ -23667,7 +23668,7 @@ Ani_obj65:
 Map_obj65:
 	include "_maps\obj65.asm"
 
-Player_MapLoc:      dc.l Map_Sonic, Map_Snorc, Map_DG
+Player_MapLoc:      dc.l Map_Sonic, Map_Snorc, Map_DG, Map_TTS
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -23707,6 +23708,14 @@ Obj01_Main:				; XREF: Obj01_Index
 		move.b	#2,$18(a0)
 		move.b	#$18,$19(a0)
 		move.b	#4,1(a0)
+		cmpi.b	#$0C,Current_Character.w
+		bne.s	@defaultvars
+	@ttsvars:
+		move.w	#$C00,($FFFFF760).w ; Sonic's top speed
+		move.w	#$F,($FFFFF762).w ; Sonic's acceleration
+		move.w	#$80,($FFFFF764).w ; Sonic's deceleration
+		jmp		Obj01_Control
+	@defaultvars:
 		move.w	#$600,($FFFFF760).w ; Sonic's top speed
 		move.w	#$C,($FFFFF762).w ; Sonic's acceleration
 		move.w	#$80,($FFFFF764).w ; Sonic's deceleration
@@ -23879,9 +23888,18 @@ Obj01_OutWater:
 		bclr	#6,$22(a0)
 		beq.s	locret_12D80
 		bsr.w	ResumeMusic
+		cmpi.b	#$0C,Current_Character.w
+		bne.s	@defaultvarsoutwater
+	@ttsvarsoutwater:
+		move.w	#$C00,($FFFFF760).w ; Sonic's top speed
+		move.w	#$F,($FFFFF762).w ; Sonic's acceleration
+		move.w	#$80,($FFFFF764).w ; Sonic's deceleration
+		jmp		Obj01_OutWaterCont
+	@defaultvarsoutwater:
 		move.w	#$600,($FFFFF760).w ; restore Sonic's speed
 		move.w	#$C,($FFFFF762).w ; restore Sonic's acceleration
 		move.w	#$80,($FFFFF764).w ; restore Sonic's deceleration
+Obj01_OutWaterCont:
 		asl	$12(a0)
 		beq.w	locret_12D80
 		move.b	#8,($FFFFD300).w ; load	splash object
@@ -24639,7 +24657,7 @@ loc_1341C:
 		addq.l	#4,sp
 		move.b	#1,$3C(a0)
 		clr.b	$38(a0)
-		move.w	#$00, ($FFFFF5C0).w	; yeah?
+		move.w	#$00, ($FFFFF5C0).w	; yeah
 		cmpi.b  #$08, ($FFFFFFF9).w ; are we dg
 		beq.b	@dgjumpsnd		; if so, jump as dg
 	@regjumpsnd:
@@ -24659,9 +24677,17 @@ loc_1341C:
 		move.b	#$E,$16(a0)
 		cmpi.b  #$08, ($FFFFFFF9).w ; are we dg
 		beq.b	@dgjump		; if so, jump as dg
+		cmpi.b  #$0C, ($FFFFFFF9).w ; are we tts
+		beq.b	@ttsjump		; if so, jump as tts
 		jmp		@otherwise
 	@dgjump:
 		move.b	#$10,$1C(a0)	; use "jumping"	animation
+		bset	#2,$22(a0)
+		addq.w	#5,$C(a0)
+		jmp		locret_1348E
+		
+	@ttsjump:
+		; move.b	#$10,$1C(a0)	; use "jumping"	animation
 		bset	#2,$22(a0)
 		addq.w	#5,$C(a0)
 		jmp		locret_1348E
@@ -24741,8 +24767,10 @@ Sonic_Thok:
 
 
 Sonic_AirRoll:
-		cmpi.b  #$08, ($FFFFFFF9).w ; are we dg
-		bne.b	AirRoll_RTSStfu		; if not, go back to regular jump code
+		cmpi.b  #$00, ($FFFFFFF9).w ; are we sonic
+		beq.b	AirRoll_RTSStfu		; if so, go back to regular jump code
+		cmpi.b  #$04, ($FFFFFFF9).w ; are we snorc
+		beq.b	AirRoll_RTSStfu		; if so, go back to regular jump code
         move.b    ($FFFFF603).w,d0 ; Move $FFFFF603 to d0
         andi.b    #$70,d0 ; Has A/B/C been pressed?
         bne.w    AirRoll_Checks ; If so, branch.
@@ -25369,7 +25397,7 @@ locret_139C2:
 ; ---------------------------------------------------------------------------
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
-Player_AniDat:     dc.l SonicAniData, SonicAniData, SonicAniData
+Player_AniDat:     dc.l SonicAniData, SonicAniData, SonicAniData, SonicAniData
 
 Sonic_Animate:				; XREF: Obj01_Control; et al
 		moveq   #0,d0           ; quickly clear d0
@@ -25494,11 +25522,11 @@ loc_13AC2:
 		rts	
 ; ===========================================================================
 
-PAni_Run:   dc.l SonAni_Run,    SonAni_Run,    SonAni_Run
-PAni_Walk:  dc.l SonAni_Walk,   SonAni_Walk,   SonAni_Walk
-PAni_Roll2: dc.l SonAni_Roll2,  SonAni_Roll2,  SonAni_Roll2
-PAni_Roll:  dc.l SonAni_Roll,   SonAni_Roll,   SonAni_Roll
-PAni_Push:  dc.l SonAni_Push,   SonAni_Push,   SonAni_Push
+PAni_Run:   dc.l SonAni_Run,    SonAni_Run,    SonAni_Run,    SonAni_Run
+PAni_Walk:  dc.l SonAni_Walk,   SonAni_Walk,   SonAni_Walk,   SonAni_Walk
+PAni_Roll2: dc.l SonAni_Roll2,  SonAni_Roll2,  SonAni_Roll2,  SonAni_Roll2
+PAni_Roll:  dc.l SonAni_Roll,   SonAni_Roll,   SonAni_Roll,   SonAni_Roll
+PAni_Push:  dc.l SonAni_Push,   SonAni_Push,   SonAni_Push,   SonAni_Push
 
 SAnim_RollJump:				; XREF: SAnim_WalkRun
 		addq.b	#1,d0		; is animation rolling/jumping?
@@ -25565,8 +25593,8 @@ SonicAniData:
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
-Player_DPLCLoc:     dc.l SonicDynPLC, SnorcDynPLC, DGDynPLC
-Player_ArtLoc:      dc.l Art_Sonic, Art_Snorc, Art_DG
+Player_DPLCLoc:     dc.l SonicDynPLC, SnorcDynPLC, DGDynPLC, TTSDynPLC
+Player_ArtLoc:      dc.l Art_Sonic, Art_Snorc, Art_DG, Art_TTS
 
 LoadSonicDynPLC:
         moveq   #0,d0               ; quickly clear d0
@@ -38024,6 +38052,18 @@ Map_DG:
 ; ---------------------------------------------------------------------------
 DGDynPLC:
 	include "_inc\DG dynamic pattern load cues.asm"
+	
+; ---------------------------------------------------------------------------
+; Sprite mappings - Sonic
+; ---------------------------------------------------------------------------
+Map_TTS:
+	include "_maps\TittyAss.asm"
+
+; ---------------------------------------------------------------------------
+; Uncompressed graphics	loading	array for Sonic
+; ---------------------------------------------------------------------------
+TTSDynPLC:
+	include "_inc\TittyAss dynamic pattern load cues.asm"
 
 ; ---------------------------------------------------------------------------
 ; Uncompressed graphics	- Sonic
@@ -38041,6 +38081,12 @@ Art_Snorc:	incbin	artunc\snorc.bin	; Sonic
 ; Uncompressed graphics	- dg
 ; ---------------------------------------------------------------------------
 Art_DG:	incbin	artunc\dg.bin	; Sonic
+		even
+		
+; ---------------------------------------------------------------------------
+; Uncompressed graphics	- dg
+; ---------------------------------------------------------------------------
+Art_TTS:	incbin	artunc\tittyass.bin	; Sonic
 		even
 		
 ; ---------------------------------------------------------------------------
