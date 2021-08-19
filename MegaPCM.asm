@@ -60,7 +60,7 @@ MegaPCM:
 	DAC_Entry	$1B, Timpani, dpcm		; $83	- Timpani
 	DAC_Entry	$08, DSTHOK, pcm+pri	; $84	- Thok SFX
 	DAC_Entry	$04, dgjump, pcm+pri	; $85	- DG Jump SFX
-	dc.l	0,0					; $86	- <Free>
+	DAC_Entry	$04, oof,	 pcm+pri	; $86	- OOF
 	dc.l	0,0					; $87	- <Free>
 	DAC_Entry	$12, Timpani, dpcm		; $88	- Hi-Timpani
 	DAC_Entry	$15, Timpani, dpcm		; $89	- Mid-Timpani
@@ -79,5 +79,6 @@ MegaPCM_End:
 	
 	IncludeDac	DSTHOK, wav
 	IncludeDac	dgjump, wav
+	IncludeDac	oof, wav
 	even
 

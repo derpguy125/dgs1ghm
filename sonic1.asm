@@ -12319,8 +12319,6 @@ Obj37_ResetCounter:			; XREF: Obj37_Loop
 		move.w	#0,($FFFFFE20).w ; reset number	of rings to zero
 		move.b	#$80,($FFFFFE1D).w ; update ring counter
 		move.b	#0,($FFFFFE1B).w
-		move.w	#$C6,d0
-		jsr	(PlaySound_Special).l ;	play ring loss sound
 
 Obj37_Bounce:				; XREF: Obj37_Index
 		move.b	($FFFFFEC7).w,$1A(a0)
@@ -35094,7 +35092,7 @@ Hurt_ChkSpikes:
 		bne.s	Hurt_Sound	; if not, branch
 		cmpi.b	#$16,(a2)	; was damage caused by LZ harpoon?
 		bne.s	Hurt_Sound	; if not, branch
-		move.w	#$A6,d0		; load spikes damage sound
+		move.w	#$A3,d0		; load spikes damage sound
 
 Hurt_Sound:
 		jsr	(PlaySound_Special).l
