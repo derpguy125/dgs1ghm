@@ -24687,7 +24687,7 @@ loc_1341C:
 		jmp		locret_1348E
 		
 	@ttsjump:
-		; move.b	#$10,$1C(a0)	; use "jumping"	animation
+		move.b	#$10,$1C(a2)	; use "jumping"	animation
 		bset	#2,$22(a0)
 		addq.w	#5,$C(a0)
 		jmp		locret_1348E
