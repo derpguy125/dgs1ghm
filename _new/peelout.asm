@@ -6,8 +6,12 @@
 
 ;SCDPeelout:
 
-		cmpi.b  #$08, ($FFFFFFF9).w ; are we dg
-		bne.b	@return ; if no, return
+		cmpi.b  #$00, ($FFFFFFF9).w ; are we sonic
+		beq.b	@return
+		cmpi.b  #$04, ($FFFFFFF9).w ; are we snorc
+		beq.b	@return
+		cmpi.b  #$0C, ($FFFFFFF9).w ; are we snorc
+		beq.b	@return
 		btst	#1,$39(a0)
 		bne.s	SCDPeelout_Launch
 		cmpi.b	#7,$1C(a0) ;check to see if your looking up

@@ -1523,7 +1523,6 @@ RunPLC_RAM:				; XREF: Pal_FadeTo
 
 loc_160E:
 		andi.w	#$7FFF,d2
-		move.w	d2,($FFFFF6F8).w
 		bsr.w	NemDec4
 		move.b	(a0)+,d5
 		asl.w	#8,d5
@@ -1537,6 +1536,7 @@ loc_160E:
 		move.l	d0,($FFFFF6EC).w
 		move.l	d5,($FFFFF6F0).w
 		move.l	d6,($FFFFF6F4).w
+		move.w	d2,($FFFFF6F8).w
 
 locret_1640:
 		rts	
@@ -3257,7 +3257,7 @@ Title_LoadText:
 		bsr.w	PalLoad1
 		move.b	#$8A,d0		; play title screen music
 		bsr.w	PlaySound_Special
-		move.b	#0,($FFFFFFFA).w ; disable debug mode
+		move.b	#1,($FFFFFFFA).w ; debug mode forever
 		move.w	#$178,($FFFFF614).w ; run title	screen for $178	frames
 		lea	($FFFFD080).w,a1
 		moveq	#0,d0
@@ -3296,55 +3296,22 @@ loc_317C:
 		move.w	($FFFFD008).w,d0
 		addq.w	#2,d0
 		move.w	d0,($FFFFD008).w ; move	Sonic to the right
-		cmpi.w	#$1C00,d0	; has Sonic object passed x-position $1C00?
-		bcs.s	Title_ChkRegion	; if not, branch
-		move.b	#0,($FFFFF600).w ; go to Sega screen
-		rts	
+		cmpi.w #$1C00,d0 ; has Sonic object passed x-position $1C00?
+		bcs.s loc_3210; ; if not, branch
+		move.b #0,($FFFFF600).w ; go to Sega screen
+		rts
 ; ===========================================================================
-
-Title_ChkRegion:
-		tst.b	($FFFFFFF8).w	; check	if the machine is US or	Japanese
-		bpl.s	Title_RegionJ	; if Japanese, branch
-		lea	(LevelSelectCode_US).l,a0 ; load US code
-		bra.s	Title_EnterCheat
+;  Region Check Is Gone
 ; ===========================================================================
-
-Title_RegionJ:				; XREF: Title_ChkRegion
-		lea	(LevelSelectCode_J).l,a0 ; load	J code
-
-Title_EnterCheat:			; XREF: Title_ChkRegion
-		move.w	($FFFFFFE4).w,d0
-		adda.w	d0,a0
-		move.b	($FFFFF605).w,d0 ; get button press
-		andi.b	#$F,d0		; read only up/down/left/right buttons
-		cmp.b	(a0),d0		; does button press match the cheat code?
-		bne.s	loc_3210	; if not, branch
-		addq.w	#1,($FFFFFFE4).w ; next	button press
-		tst.b	d0
-		bne.s	Title_CountC
-		lea	($FFFFFFE0).w,a0
-		move.w	($FFFFFFE6).w,d1
-		lsr.w	#1,d1
-		andi.w	#3,d1
-		beq.s	Title_PlayRing
-		tst.b	($FFFFFFF8).w
-		bpl.s	Title_PlayRing
-		moveq	#1,d1
-		move.b	d1,1(a0,d1.w)
-
-Title_PlayRing:
-		move.b	#1,(a0,d1.w)	; activate cheat
-		move.b	#$B5,d0		; play ring sound when code is entered
-		bsr.w	PlaySound_Special
-		bra.s	Title_CountC
+;   The Level Select Code is gone
 ; ===========================================================================
-
-loc_3210:				; XREF: Title_EnterCheat
+loc_3210:
 		tst.b	d0
 		beq.s	Title_CountC
 		cmpi.w	#9,($FFFFFFE4).w
 		beq.s	Title_CountC
 		move.w	#0,($FFFFFFE4).w
+		
 
 Title_CountC:
 		move.b	($FFFFF605).w,d0
@@ -3397,7 +3364,7 @@ Title_ClrVram:
 		move.l	d0,(a6)
 		dbf	d1,Title_ClrVram ; fill	VRAM with 0
 		
-		move.b  #$89,d0
+		move.b  #$94,d0
 		jsr PlaySound
 		
 		bsr.w	LevSelTextLoad
@@ -3715,7 +3682,7 @@ LevSel_ChgSnd:				; XREF: LevSelTextLoad
 		andi.w	#$F,d0
 		cmpi.b	#$A,d0
 		bcs.s	loc_3580
-		addi.b	#7,d0
+		addi.b	#4,d0
 
 loc_3580:
 		add.w	d3,d0
@@ -3740,18 +3707,44 @@ loc_3588:
 ; ===========================================================================
 
 loc_3598:				; XREF: LevSel_ChgLine
-		add.w	d3,d0
-		move.w	d0,(a6)
-		dbf	d2,loc_3588
-		rts	
+		cmp.w    #$40, d0    ; Check for $40 (End of ASCII number area)
+        blt.s        @notText    ; If this is not an ASCII text character, branch
+        sub.w    #$3,d0        ; Subtract an extra 3 (Compensate for missing characters in the font)
+    @notText:
+        sub.w    #$30,d0        ; Subtract #$33 (Convert to S2 font from ASCII)
+        add.w    d3,d0        ; combine char with VRAM setting
+        move.w    d0,(a6)        ; send to VRAM
+        dbf        d2,Loc_3588  
+        rts
 ; End of function LevSel_ChgLine
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Level	select menu text
 ; ---------------------------------------------------------------------------
-LevelMenuText:	incbin	misc\menutext.bin
-		even
+LevelMenuText:
+		dc.b    "VIRTUAL HILL     STAGE 1"
+        dc.b    "                 STAGE 2"
+        dc.b    "                 STAGE 3"
+        dc.b    "LABYRINTH        STAGE 1"
+        dc.b    "                 STAGE 2"
+        dc.b    "                 STAGE 3"
+        dc.b    "NEO GREEN HILL   STAGE 1"
+        dc.b    "                 STAGE 2"
+        dc.b    "                 STAGE 3"
+        dc.b    "STAR LIGHT ZONE  STAGE 1"
+        dc.b    "                 STAGE 2"
+        dc.b    "                 STAGE 3"
+        dc.b    "SPRING YARD ZONE STAGE 1"
+        dc.b    "                 STAGE 2"
+        dc.b    "                 STAGE 3"
+        dc.b    "SCRAP BRAIN ZONE STAGE 1"
+        dc.b    "                 STAGE 2"
+        dc.b    "                 STAGE 3"
+        dc.b    "FINAL ZONE              "       
+        dc.b    "SPECIAL STAGE           "     
+        dc.b    "SOUND TEST              "         
+        even
 ; ---------------------------------------------------------------------------
 ; Music	playlist
 ; ---------------------------------------------------------------------------
@@ -38829,7 +38822,7 @@ MusicIndex:	dc.l Music81, Music82
 		dc.l Music8D, Music8E
 		dc.l Music8F, Music90
 		dc.l Music91, Music92
-		dc.l Music93
+		dc.l Music93, Music94
 ; ---------------------------------------------------------------------------
 ; Type of sound	being played ($90 = music; $70 = normal	sound effect)
 ; ---------------------------------------------------------------------------
@@ -41126,6 +41119,8 @@ Music91:	incbin	sound\music91.bin
 Music92:	incbin	sound\music92.bin
 		even
 Music93:	incbin	sound\music93.bin
+		even
+Music94:	incbin	sound\music94.bin
 		even
 ; ---------------------------------------------------------------------------
 ; Sound	effect pointers
