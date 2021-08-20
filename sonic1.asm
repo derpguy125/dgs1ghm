@@ -37365,7 +37365,7 @@ HudDb_XYLoop:
 		andi.w	#$F,d2
 		cmpi.w	#$A,d2
 		bcs.s	loc_1C8B2
-		addq.w	#7,d2
+		addq.w	#4,d2
 
 loc_1C8B2:
 		lsl.w	#5,d2
