@@ -2868,9 +2868,9 @@ Pal_SpeResult:	incbin	pallet\ssresult.bin	; special stage results screen pallets
 Pal_SpeContinue:incbin	pallet\sscontin.bin	; special stage results screen continue pallet
 Pal_Ending:	incbin	pallet\ending.bin	; ending sequence pallets
 
-CharPalList:        dc.l Pal_Sonic, Pal_Snorc, Pal_DG, Pal_TTS
-CharPalListLZ:      dc.l Pal_LZSonWater, Pal_LZSnorcWater, Pal_LZSnorcWater, Pal_LZSnorcWater
-CharPalListSBZ3:    dc.l Pal_SBZ3SonWat, Pal_SBZ3SnorcWater, Pal_SBZ3SnorcWater, Pal_SBZ3SnorcWater
+CharPalList:        dc.l Pal_Sonic, Pal_Snorc, Pal_DG, Pal_TTS, Pal_TTS
+CharPalListLZ:      dc.l Pal_LZSonWater, Pal_LZSnorcWater, Pal_LZSnorcWater, Pal_LZSnorcWater, Pal_LZSnorcWater
+CharPalListSBZ3:    dc.l Pal_SBZ3SonWat, Pal_SBZ3SnorcWater, Pal_SBZ3SnorcWater, Pal_SBZ3SnorcWater, Pal_SBZ3SnorcWater
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -3362,7 +3362,7 @@ Title_CheckForB:
 		cmpi.b	#$10, ($FFFFF605).w	; has B been pressed?
 		bne.s	StartCheck		; if not, branch
 Title_SecondCharacter:
-		cmpi.b  #$0C, ($FFFFFFF9).w ; are we dg
+		cmpi.b  #$10, ($FFFFFFF9).w ; are we dg
 		beq.b	Title_BackTo0		; if so, switch to sos
 		addi.b	#$04, ($FFFFFFF9).w	; switch character
 		jmp 	Title_SFX	; jump to StartCheck so i dont get back into Title_Switcheroo FUCK.
@@ -23666,7 +23666,7 @@ Ani_obj65:
 Map_obj65:
 	include "_maps\obj65.asm"
 
-Player_MapLoc:      dc.l Map_Sonic, Map_Snorc, Map_DG, Map_TTS
+Player_MapLoc:      dc.l Map_Sonic, Map_Snorc, Map_DG, Map_TTS, Map_Anthont
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -23943,6 +23943,7 @@ loc_12E5C:
 		bsr.w	Sonic_JumpAngle
 		bsr.w	Sonic_Floor
 		bsr.w   Sonic_AirRoll
+		bsr.w   Sonic_DJRoll
 		bsr.w	Sonic_Thok
 		rts	
 ; ===========================================================================
@@ -23971,6 +23972,7 @@ loc_12EA6:
 		bsr.w	Sonic_JumpAngle
 		bsr.w	Sonic_Floor
 		bsr.w   Sonic_AirRoll
+		bsr.w   Sonic_DJRoll
 		bsr.w	Sonic_Thok
 		rts	
 ; ---------------------------------------------------------------------------
@@ -24675,6 +24677,8 @@ loc_1341C:
 		move.b	#$E,$16(a0)
 		cmpi.b  #$08, ($FFFFFFF9).w ; are we dg
 		beq.b	@dgjump		; if so, jump as dg
+		cmpi.b  #$10, ($FFFFFFF9).w ; are we dg
+		beq.b	@dgjump		; if so, jump as dg
 		cmpi.b  #$0C, ($FFFFFFF9).w ; are we tts
 		beq.b	@ttsjump		; if so, jump as tts
 		jmp		@otherwise
@@ -24765,32 +24769,19 @@ Sonic_Thok:
 
 
 Sonic_AirRoll:
-		cmpi.b  #$00, ($FFFFFFF9).w ; are we sonic
-		beq.b	AirRoll_RTSStfu		; if so, go back to regular jump code
-		cmpi.b  #$04, ($FFFFFFF9).w ; are we snorc
-		beq.b	AirRoll_RTSStfu		; if so, go back to regular jump code
-        move.b    ($FFFFF603).w,d0 ; Move $FFFFF603 to d0
-        andi.b    #$70,d0 ; Has A/B/C been pressed?
-        bne.w    AirRoll_Checks ; If so, branch.
-        rts ; Return.
- 
-AirRoll_Checks:
-        cmpi.b  #2,$1C(a0) ; Is animation 2 active?
-        bne.s   AirRoll_Set ; If not, branch.
-        btst    #1,$22(a0) ; Is bit 1 in the status bitfield enabled?
-        bne.s   AirRoll_Set ; If so, branch.
-        rts ; Return
-		
-AirRoll_Set:
-		cmpi.b    #2,$1C(a0) ; Is animation 2 active?
-		beq.b	AirRoll_RTSStfu		; if so, gtfo we're already spinning
-		
-		move.b  #2,$1C(a0) ; Set Sonic's animation to the rolling animation.
-		move.w	#$BE,d0
-		jsr		(PlaySound_Special).l 	; Play spindash charge sound
-		
-AirRoll_RTSStfu:
-		rts ; return
+	include "_new\airroll.asm"
+	rts
+	
+; ---------------------------------------------------------------------------
+; Subroutine to make Anthont Roll after jumping lmao
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+
+
+Sonic_DJRoll:
+	include "_new\djroll.asm"
+	rts
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to make Sonic perform a spindash
@@ -25400,7 +25391,7 @@ locret_139C2:
 ; ---------------------------------------------------------------------------
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
-Player_AniDat:     dc.l SonicAniData, SonicAniData, SonicAniData, SonicAniData
+Player_AniDat:     dc.l SonicAniData, SonicAniData, SonicAniData, SonicAniData, SonicAniData
 
 Sonic_Animate:				; XREF: Obj01_Control; et al
 		moveq   #0,d0           ; quickly clear d0
@@ -25525,11 +25516,11 @@ loc_13AC2:
 		rts	
 ; ===========================================================================
 
-PAni_Run:   dc.l SonAni_Run,    SonAni_Run,    SonAni_Run,    SonAni_Run
-PAni_Walk:  dc.l SonAni_Walk,   SonAni_Walk,   SonAni_Walk,   SonAni_Walk
-PAni_Roll2: dc.l SonAni_Roll2,  SonAni_Roll2,  SonAni_Roll2,  SonAni_Roll2
-PAni_Roll:  dc.l SonAni_Roll,   SonAni_Roll,   SonAni_Roll,   SonAni_Roll
-PAni_Push:  dc.l SonAni_Push,   SonAni_Push,   SonAni_Push,   SonAni_Push
+PAni_Run:   dc.l SonAni_Run,    SonAni_Run,    SonAni_Run,    SonAni_Run,    SonAni_Run
+PAni_Walk:  dc.l SonAni_Walk,   SonAni_Walk,   SonAni_Walk,   SonAni_Walk,   SonAni_Walk
+PAni_Roll2: dc.l SonAni_Roll2,  SonAni_Roll2,  SonAni_Roll2,  SonAni_Roll2,  SonAni_Roll2
+PAni_Roll:  dc.l SonAni_Roll,   SonAni_Roll,   SonAni_Roll,   SonAni_Roll,   SonAni_Roll
+PAni_Push:  dc.l SonAni_Push,   SonAni_Push,   SonAni_Push,   SonAni_Push,   SonAni_Push
 
 SAnim_RollJump:				; XREF: SAnim_WalkRun
 		addq.b	#1,d0		; is animation rolling/jumping?
@@ -25596,8 +25587,8 @@ SonicAniData:
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
-Player_DPLCLoc:     dc.l SonicDynPLC, SnorcDynPLC, DGDynPLC, TTSDynPLC
-Player_ArtLoc:      dc.l Art_Sonic, Art_Snorc, Art_DG, Art_TTS
+Player_DPLCLoc:     dc.l SonicDynPLC, SnorcDynPLC, DGDynPLC, TTSDynPLC, AnthontDynPLC
+Player_ArtLoc:      dc.l Art_Sonic, Art_Snorc, Art_DG, Art_TTS, Art_Anthont
 
 LoadSonicDynPLC:
         moveq   #0,d0               ; quickly clear d0
@@ -38071,6 +38062,18 @@ Map_TTS:
 ; ---------------------------------------------------------------------------
 TTSDynPLC:
 	include "_inc\TittyAss dynamic pattern load cues.asm"
+	
+; ---------------------------------------------------------------------------
+; Sprite mappings - Sonic
+; ---------------------------------------------------------------------------
+Map_Anthont:
+	include "_maps\Anthont.asm"
+
+; ---------------------------------------------------------------------------
+; Uncompressed graphics	loading	array for Sonic
+; ---------------------------------------------------------------------------
+AnthontDynPLC:
+	include "_inc\Anthont dynamic pattern load cues.asm"
 
 ; ---------------------------------------------------------------------------
 ; Uncompressed graphics	- Sonic
@@ -38091,9 +38094,15 @@ Art_DG:	incbin	artunc\dg.bin	; Sonic
 		even
 		
 ; ---------------------------------------------------------------------------
-; Uncompressed graphics	- dg
+; Uncompressed graphics	- tts
 ; ---------------------------------------------------------------------------
 Art_TTS:	incbin	artunc\tittyass.bin	; Sonic
+		even
+		
+; ---------------------------------------------------------------------------
+; Uncompressed graphics	- antoine
+; ---------------------------------------------------------------------------
+Art_Anthont:	incbin	artunc\anthont.bin	; Sonic
 		even
 		
 ; ---------------------------------------------------------------------------
