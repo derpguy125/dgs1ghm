@@ -421,9 +421,7 @@ loc_5D8:
 
 
 ErrorWaitForC:				; XREF: loc_478
-		bsr.w	ReadJoypads
-		cmpi.b	#$20,($FFFFF605).w ; is	button C pressed?
-		bne.w	ErrorWaitForC	; if not, branch
+
 		rts	
 ; End of function ErrorWaitForC
 
@@ -3945,7 +3943,6 @@ Level_LoadObj:
 		moveq	#0,d0
 		tst.b	($FFFFFE30).w	; are you starting from	a lamppost?
 		bne.s	loc_39E8	; if yes, branch
-		move.w	d0,($FFFFFE20).w ; clear rings
 		move.l	d0,($FFFFFE22).w ; clear time
 		move.b	d0,($FFFFFE1B).w ; clear lives counter
 
@@ -35107,6 +35104,7 @@ KillSonic:
 		tst.w	($FFFFFE08).w	; is debug mode	active?
 		bne.s	Kill_NoDeath	; if yes, branch
 		move.b	#0,($FFFFFE2D).w ; remove invincibility
+		move.w	#0,($FFFFFE20).w ; clear rings
 		move.b	#6,$24(a0)
 		bsr.w	Sonic_ResetOnFloor
 		bset	#1,$22(a0)
@@ -35840,6 +35838,7 @@ Obj09_Modes:	dc.w Obj09_OnWall-Obj09_Modes
 ; ===========================================================================
 
 Obj09_OnWall:				; XREF: Obj09_Modes
+		bclr	#7,$22(a0)	; clear "Sonic has jumped" flag
 		bsr.w	Obj09_Jump
 		bsr.w	Obj09_Move
 		bsr.w	Obj09_Fall
@@ -35847,7 +35846,7 @@ Obj09_OnWall:				; XREF: Obj09_Modes
 ; ===========================================================================
 
 Obj09_InAir:				; XREF: Obj09_Modes
-		bsr.w	nullsub_2
+		bsr.w	Obj09_JumpHeight
 		bsr.w	Obj09_Move
 		bsr.w	Obj09_Fall
 
@@ -36007,6 +36006,7 @@ Obj09_Jump:				; XREF: Obj09_OnWall
 		asr.l	#8,d0
 		move.w	d0,$12(a0)
 		bset	#1,$22(a0)
+		bset	#7,$22(a0)	; set "Sonic has jumped" flag
 		move.w	#$A0,d0
 		jsr	(PlaySound_Special).l ;	play jumping sound
 
@@ -36018,24 +36018,46 @@ Obj09_NoJump:
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
 
-nullsub_2:				; XREF: Obj09_InAir
-		rts	
-; End of function nullsub_2
-
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
-; unused subroutine to limit Sonic's upward vertical speed
+; Subroutine to limit Sonic's upward vertical speed
 ; ---------------------------------------------------------------------------
-		move.w	#-$400,d1
-		cmp.w	$12(a0),d1
-		ble.s	locret_1BBB4
-		move.b	($FFFFF602).w,d0
-		andi.b	#$70,d0
-		bne.s	locret_1BBB4
-		move.w	d1,$12(a0)
 
+Obj09_JumpHeight:			; XREF: Obj09_InAir
+		move.b	($FFFFF602).w,d0	; is the jump button up?
+		andi.b	#$70,d0
+		bne.s	locret_1BBB4		; if not, branch to return
+		btst	#7,$22(a0)		; did Sonic jump or is he just falling or hit by a bumper?
+		beq.s	locret_1BBB4		; if not, branch to return
+		move.b	($FFFFF780).w,d0	; get SS angle
+		andi.b	#$FC,d0
+		neg.b	d0
+		subi.b	#$40,d0
+		jsr	(CalcSine).l			
+		move.w	$12(a0),d2		; get Y speed
+		muls.w	d2,d0			; multiply Y speed by sin
+		asr.l	#8,d0			; find the new Y speed
+		move.w	$10(a0),d2		; get X speed
+		muls.w	d2,d1			; multiply X speed by cos
+		asr.l	#8,d1			; find the new X speed
+		add.w	d0,d1			; combine the two speeds
+		cmpi.w	#$400,d1		; compare the combined speed with the jump release speed
+		ble.s	locret_1BBB4		; if it's less, branch to return
+		move.b	($FFFFF780).w,d0
+		andi.b	#$FC,d0
+		neg.b	d0
+		subi.b	#$40,d0
+		jsr	(CalcSine).l
+		muls.w	#$400,d1
+		asr.l	#8,d1
+		move.w	d1,$10(a0)
+		muls.w	#$400,d0
+		asr.l	#8,d0
+		move.w	d0,$12(a0)		; set the speed to the jump release speed
+		bclr	#7,$22(a0)		; clear "Sonic has jumped" flag
+ 
 locret_1BBB4:
-		rts	
+		rts
 ; ---------------------------------------------------------------------------
 ; Subroutine to	fix the	camera on Sonic's position (special stage)
 ; ---------------------------------------------------------------------------
@@ -36399,6 +36421,7 @@ Obj09_ChkBumper:
 		asr.l	#8,d0
 		move.w	d0,$12(a0)
 		bset	#1,$22(a0)
+		bclr	#7,$22(a0)	; clear "Sonic has jumped" flag
 		bsr.w	SS_RemoveCollectedItem
 		bne.s	Obj09_BumpSnd
 		move.b	#2,(a2)
