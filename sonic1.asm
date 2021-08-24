@@ -38167,6 +38167,7 @@ Art_DG:	incbin	artunc\dg.bin	; Sonic
 ; ---------------------------------------------------------------------------
 ; Uncompressed graphics	- tts
 ; ---------------------------------------------------------------------------
+	align	$20000	; align to the next bank?
 Art_TTS:	incbin	artunc\tittyass.bin	; Sonic
 		even
 		
