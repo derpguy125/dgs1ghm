@@ -3756,7 +3756,7 @@ loc_3598:				; XREF: LevSel_ChgLine
 ; Level	select menu text
 ; ---------------------------------------------------------------------------
 LevelMenuText:
-     dc.b    "GREEN HILL ZONE  STAGE 1"
+		dc.b    "GREEN HILL ZONE  STAGE 1"
         dc.b    "                 STAGE 2"
         dc.b    "                 STAGE 3"
         dc.b    "LABYRINTH        STAGE 1"
