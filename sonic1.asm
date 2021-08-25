@@ -3756,25 +3756,25 @@ loc_3598:				; XREF: LevSel_ChgLine
 ; Level	select menu text
 ; ---------------------------------------------------------------------------
 LevelMenuText:
-		dc.b    "GREEN HILL ZONE  STAGE 1"
+		dc.b    "VIRTUAL HILL     STAGE 1"
         dc.b    "                 STAGE 2"
         dc.b    "                 STAGE 3"
-        dc.b    "LABYRINTH        STAGE 1"
+        dc.b    "DEEP SEA         STAGE 1"
         dc.b    "                 STAGE 2"
         dc.b    "                 STAGE 3"
-        dc.b    "MARBLE ZONE      STAGE 1"
+        dc.b    "NEO GREEN HILL   STAGE 1"
         dc.b    "                 STAGE 2"
         dc.b    "                 STAGE 3"
-        dc.b    "STAR LIGHT ZONE  STAGE 1"
+        dc.b    "STAR LIGHT       STAGE 1"
         dc.b    "                 STAGE 2"
         dc.b    "                 STAGE 3"
-        dc.b    "SPRING YARD ZONE STAGE 1"
+        dc.b    "BEDROCK CITY     STAGE 1"
         dc.b    "                 STAGE 2"
         dc.b    "                 STAGE 3"
-        dc.b    "SCRAP BRAIN ZONE STAGE 1"
+        dc.b    "METALLIC MADNESS STAGE 1"
         dc.b    "                 STAGE 2"
         dc.b    "                 STAGE 3"
-        dc.b    "FINAL ZONE              "       
+        dc.b    "IN THE FINAL            "       
         dc.b    "SPECIAL STAGE           "     
         dc.b    "SOUND TEST              "         
         even
@@ -15826,7 +15826,7 @@ Map_obj34:	dc.w byte_C9FE-Map_obj34
 		dc.w byte_CB47-Map_obj34
 		dc.w byte_CB8A-Map_obj34
 byte_C9FE:	dc.b $C	;  GREEN HILL | VIRTUAL HILL
-		dc.b $F8, 5, 0, $52, $9C	; K
+		dc.b $F8, 5, 0, $52, $9C	; V
 		dc.b $F8, 1, 0, $20, $AC	; I
 		dc.b $F8, 5, 0, $3A, $B4	; R
 		dc.b $F8, 5, 0, $42, $C4	; T
@@ -15838,16 +15838,15 @@ byte_C9FE:	dc.b $C	;  GREEN HILL | VIRTUAL HILL
 		dc.b $F8, 1, 0, $20, $24	; I
 		dc.b $F8, 5, 0, $26, $2C	; L
 		dc.b $F8, 5, 0, $26, $3C	; L
-byte_CA2C:	dc.b 9			; LABYRINTH
-		dc.b $F8, 5, 0,	$26, $BC
-		dc.b $F8, 5, 0,	0, $CC
-		dc.b $F8, 5, 0,	4, $DC
-		dc.b $F8, 5, 0,	$4A, $EC
-		dc.b $F8, 5, 0,	$3A, $FC
-		dc.b $F8, 1, 0,	$20, $C
-		dc.b $F8, 5, 0,	$2E, $14
-		dc.b $F8, 5, 0,	$42, $24
-		dc.b $F8, 5, 0,	$1C, $34
+byte_CA2C:	dc.b 8	;  LABYRINTH | DEEP SEA
+		dc.b $F8, 5, 0, $0C, $CC	; D
+		dc.b $F8, 5, 0, $10, $DC	; E
+		dc.b $F8, 5, 0, $10, $EC	; E
+		dc.b $F8, 5, 0, $36, $FC	; P
+		dc.b $F8, 0, 0, $56, $C	; Space
+		dc.b $F8, 5, 0, $3E, $1C	; S
+		dc.b $F8, 5, 0, $10, $2C	; E
+		dc.b $F8, 5, 0, 0, $3C		; A
 byte_CA5A:	dc.b $E	;  MARBLE | NEO GREEN HILL
 		dc.b $F8, 5, 0, $2E, $80	; N
 		dc.b $F8, 5, 0, $10, $90	; E
@@ -15874,30 +15873,36 @@ byte_CA7A:	dc.b 9			; STAR	LIGHT
 		dc.b $F8, 5, 0,	$18, $1C
 		dc.b $F8, 5, 0,	$1C, $2C
 		dc.b $F8, 5, 0,	$42, $3C
-byte_CAA8:	dc.b $A			; SPRING YARD
-		dc.b $F8, 5, 0,	$3E, $AC
-		dc.b $F8, 5, 0,	$36, $BC
-		dc.b $F8, 5, 0,	$3A, $CC
-		dc.b $F8, 1, 0,	$20, $DC
-		dc.b $F8, 5, 0,	$2E, $E4
-		dc.b $F8, 5, 0,	$18, $F4
-		dc.b $F8, 5, 0,	$4A, $14
-		dc.b $F8, 5, 0,	0, $24
-		dc.b $F8, 5, 0,	$3A, $34
-		dc.b $F8, 5, 0,	$C, $44
-		dc.b 0
-byte_CADC:	dc.b $A			; SCRAP BRAIN
-		dc.b $F8, 5, 0,	$3E, $AC
-		dc.b $F8, 5, 0,	8, $BC
-		dc.b $F8, 5, 0,	$3A, $CC
-		dc.b $F8, 5, 0,	0, $DC
-		dc.b $F8, 5, 0,	$36, $EC
-		dc.b $F8, 5, 0,	4, $C
-		dc.b $F8, 5, 0,	$3A, $1C
-		dc.b $F8, 5, 0,	0, $2C
-		dc.b $F8, 1, 0,	$20, $3C
-		dc.b $F8, 5, 0,	$2E, $44
-		dc.b 0
+byte_CAA8:	dc.b $C	;  SPRING YARD | BEDROCK CITY
+		dc.b $F8, 5, 0, 4, $94		; B
+		dc.b $F8, 5, 0, $10, $A4	; E
+		dc.b $F8, 5, 0, $0C, $B4	; D
+		dc.b $F8, 5, 0, $3A, $C4	; R
+		dc.b $F8, 5, 0, $32, $D4	; O
+		dc.b $F8, 5, 0, 8, $E4		; C
+		dc.b $F8, 5, 0, $22, $F4	; K
+		dc.b $F8, 0, 0, $56, $4	; Space
+		dc.b $F8, 5, 0, 8, $14		; C
+		dc.b $F8, 1, 0, $20, $24	; I
+		dc.b $F8, 5, 0, $42, $2C	; T
+		dc.b $F8, 5, 0, $4A, $3C	; Y
+byte_CADC:	dc.b $10	;  SCRAP BRAIN | METALLIC MADNESS
+		dc.b $F8, 5, 0, $2A, $84	; M
+		dc.b $F8, 5, 0, $10, $94	; E
+		dc.b $F8, 5, 0, $42, $A4	; T
+		dc.b $F8, 5, 0, 0, $B4		; A
+		dc.b $F8, 5, 0, $26, $C4	; L
+		dc.b $F8, 5, 0, $26, $D4	; L
+		dc.b $F8, 1, 0, $20, $E4	; I
+		dc.b $F8, 5, 0, 8, $EC		; C
+		dc.b $F8, 0, 0, $56, $FC	; Space
+		dc.b $F8, 5, 0, $2A, $C	; M
+		dc.b $F8, 5, 0, 0, $1C		; A
+		dc.b $F8, 5, 0, $0C, $2C	; D
+		dc.b $F8, 5, 0, $2E, $3C	; N
+		dc.b $F8, 5, 0, $10, $4C	; E
+		dc.b $F8, 5, 0, $3E, $5C	; S
+		dc.b $F8, 5, 0, $3E, $6C	; S
 byte_CB10:	dc.b 8			; ZONE
 		dc.b $F8, 5, 0, $4E, $B0	; Z
 		dc.b $F8, 5, 0, $32, $C0	; O
