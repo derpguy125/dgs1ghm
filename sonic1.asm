@@ -25096,16 +25096,7 @@ UseSCDDash2:
 		rts
 
 
-; ---------------------------------------------------------------------------
-; Subroutine to make Anthont Explode after getting hit lmfao
-; ---------------------------------------------------------------------------
 
-; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
-
-
-SonicExplodeHit:
-	include "_new\boom.asm"
-	rts
 ; ---------------------------------------------------------------------------
 ; Subroutine to	slow Sonic walking up a	slope
 ; ---------------------------------------------------------------------------
@@ -25491,12 +25482,16 @@ loc_137E4:
 ; Sonic	when he	gets hurt
 ; ---------------------------------------------------------------------------
 
+
+
 Obj01_Hurt:				; XREF: Obj01_Index
 		jsr	SpeedToPos
 		addi.w	#$30,$12(a0)
 		btst	#6,$22(a0)
 		beq.s	loc_1380C
 		subi.w	#$20,$12(a0)
+
+
 
 loc_1380C:
 		bsr.w	Sonic_HurtStop
@@ -25686,7 +25681,7 @@ locret_139C2:
 ; ---------------------------------------------------------------------------
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
-Player_AniDat:     dc.l SonicAniData, SonicAniData, SonicAniData, SonicAniData, SonicAniData
+Player_AniDat:     dc.l SonicAniData, SonicAniData, SonicAniData, SonicAniData, AnthontAniData
 
 Sonic_Animate:				; XREF: Obj01_Control; et al
 		moveq   #0,d0           ; quickly clear d0
@@ -25811,11 +25806,11 @@ loc_13AC2:
 		rts	
 ; ===========================================================================
 
-PAni_Run:   dc.l SonAni_Run,    SonAni_Run,    SonAni_Run,    SonAni_Run,    SonAni_Run
-PAni_Walk:  dc.l SonAni_Walk,   SonAni_Walk,   SonAni_Walk,   SonAni_Walk,   SonAni_Walk
-PAni_Roll2: dc.l SonAni_Roll2,  SonAni_Roll2,  SonAni_Roll2,  SonAni_Roll2,  SonAni_Roll2
-PAni_Roll:  dc.l SonAni_Roll,   SonAni_Roll,   SonAni_Roll,   SonAni_Roll,   SonAni_Roll
-PAni_Push:  dc.l SonAni_Push,   SonAni_Push,   SonAni_Push,   SonAni_Push,   SonAni_Push
+PAni_Run:   dc.l SonAni_Run,    SonAni_Run,    SonAni_Run,    SonAni_Run,    AnthontAni_Run
+PAni_Walk:  dc.l SonAni_Walk,   SonAni_Walk,   SonAni_Walk,   SonAni_Walk,   AnthontAni_Walk
+PAni_Roll2: dc.l SonAni_Roll2,  SonAni_Roll2,  SonAni_Roll2,  SonAni_Roll2,  AnthontAni_Roll2
+PAni_Roll:  dc.l SonAni_Roll,   SonAni_Roll,   SonAni_Roll,   SonAni_Roll,   AnthontAni_Roll
+PAni_Push:  dc.l SonAni_Push,   SonAni_Push,   SonAni_Push,   SonAni_Push,   AnthontAni_Push
 
 SAnim_RollJump:				; XREF: SAnim_WalkRun
 		addq.b	#1,d0		; is animation rolling/jumping?
@@ -25875,6 +25870,9 @@ loc_13B26:
 ; ===========================================================================
 SonicAniData:
 	include "_anim\Sonic.asm"
+	
+AnthontAniData:
+	include "_anim\Anthont.asm"
 
 ; ---------------------------------------------------------------------------
 ; Sonic	pattern	loading	subroutine
@@ -35331,6 +35329,19 @@ Touch_Hurt:				; XREF: Touch_ChkHurt
 
 ; End of function TouchResponse
 ; continue straight to HurtSonic
+
+; ---------------------------------------------------------------------------
+; Subroutine to make Anthont Explode after getting hit lmfao
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+
+
+SonicExplodeHit:
+	include "_new\boom.asm"
+	
+SEHEnd:
+	jmp HurtSonic
 
 ; ---------------------------------------------------------------------------
 ; Hurting Sonic	subroutine
