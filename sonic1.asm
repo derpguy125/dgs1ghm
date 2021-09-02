@@ -3889,6 +3889,7 @@ Level_ClrVars3:
 		move.w	($FFFFF624).w,(a6)
 		clr.w ($FFFFC800).w
 		move.l #$FFFFC800,($FFFFC8FC).w
+		clr.b	($FFFFF5FF).w	; clear	victory jump
 		cmpi.b	#1,($FFFFFE10).w ; is level LZ?
 		bne.s	Level_LoadPal	; if not, branch
 		move.w	#$8014,(a6)
@@ -18810,6 +18811,7 @@ Obj0D_SparkPos:	dc.b -$18,-$10		; x-position, y-position
 
 
 GotThroughAct:				; XREF: Obj3E_EndAct
+        	move.b  #1,($FFFFF5FF).w ; Set victory animation flag
 		tst.b	($FFFFD5C0).w
 		bne.s	locret_ECEE
 		move.w	($FFFFF72A).w,($FFFFF728).w
@@ -24981,7 +24983,14 @@ loc_1341C:
 		jmp		locret_1348E
 		
 	@otherwise:
-		move.b	#2,$1C(a0)	; use "jumping"	animation
+Result_Check:
+        tst.b   ($FFFFF5FF).w ; Has the victory animation flag been set?
+        beq.s   NormalJump ; If not, branch
+        move.b  #$13,$1C(a0) ; Play the victory animation
+        bra.s   cont ; Continue
+NormalJump:
+        move.b  #2,$1C(a0)    ; use "jumping"    animation
+cont:
 		bset	#2,$22(a0)
 		addq.w	#5,$C(a0)
 
