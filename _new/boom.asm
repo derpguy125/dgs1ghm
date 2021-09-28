@@ -46,7 +46,7 @@ Hurt_Reverse1:
 Hurt_ChkSpikes1:
 		move.b	#0,$39(a0)	; clear Spin Dash flag
 		move.w	#0,$14(a0)
-		move.b	#$1E,$1C(a0)
+		move.b	#$1F,$1C(a0)
 		move.w	#$78,$30(a0)
 		move.w	#$A3,d0		; load normal damage sound
 		cmpi.b	#$36,(a2)	; was damage caused by spikes?
