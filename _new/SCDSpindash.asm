@@ -4,7 +4,7 @@
 ; If you use this makes sure to search for ;Peelout in Sonic1.asm
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
-SCDSpindash:
+Sonic_SCDSpindash:
 		btst	#0,$39(a0)
 		bne.s	SCDSpindash_Launch
 		cmpi.b	#8,$1C(a0) ;check to see if your ducking
